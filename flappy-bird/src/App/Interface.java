@@ -1,24 +1,17 @@
 package App;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.imageio.ImageIO;
 
 public class Interface {
   // globals
-  GamePanel gp;
-  Graphics2D g2;
-  int interfaceState = 0; // states are mapped to gp.gamestates
+  private GamePanel gp;
+  private Graphics2D g2;
+  private int interfaceState = 0; // states are mapped to gp.gamestates
 
   public Interface(GamePanel gp) {
     this.gp = gp;
-
   }
 
   /**
@@ -39,8 +32,9 @@ public class Interface {
   }
 
   private void drawDead() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'drawDead'");
+    BufferedImage gameOver = gp.ag.getGameOver();
+    g2.drawImage(gameOver,  (int)((gp.screenWidth - gameOver.getWidth()) / 2),
+                            (int)((gp.screenHeight - gameOver.getHeight()) / 3), null);
   }
 
   private void drawPaused() {
@@ -78,11 +72,5 @@ public class Interface {
       return true;
     }
     return false;
-  }
-
-  public int getXforCenteringText(String text) {
-    int length = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
-    int x = gp.screenWidth/2 - length/2;
-    return x;
   }
 }

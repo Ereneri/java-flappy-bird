@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
   // setup global key presses
-  boolean space, esc;
+  private boolean space, esc;
   GamePanel gp;
 
   /**
@@ -13,6 +13,29 @@ public class KeyHandler implements KeyListener {
    */
   public KeyHandler(GamePanel gp) {
     this.gp = gp;
+  }
+  
+  /**
+   * Gets state of keyboard jumping input
+   * @return boolean value whether user Jumped
+   */
+  public boolean Jump() {
+    return space;
+  }
+
+  /**
+   * Gets state of keyboard pause input
+   * @return boolean value whether user paused game
+   */
+  public boolean Pause() {
+    return esc;
+  }
+
+  /**
+   * Sets Jump key to false
+   */
+  public void stopJump() {
+    space = false;
   }
 
   @Override
@@ -52,7 +75,7 @@ public class KeyHandler implements KeyListener {
       if (code == KeyEvent.VK_SPACE) {
         space = true;
         gp.gameState = gp.NEWGAME;
-
+        gp.newGame();
       }
     }
   }

@@ -1,66 +1,71 @@
 package App;
 
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public class Player {
   // Player variables
-  double x, y;
-  int score = 0;
-  int width, height;
-  double vertSpeed = 0;
-  boolean isAlive = true;
-  KeyHandler keyH;
-  GamePanel gp;
-  Collision c;
+  private double x, y;
+  private int score;
+  private int width, height;
+  private boolean isAlive;
+
+  // object vars
+  private GamePanel gp;
+  private Collision c;
   
   // sprint rendering
-  int imageCounter = 0;
-  BufferedImage[] bird;
-  BufferedImage currentBirdImage;
-
+  private int imageCounter = 0;
+  private BufferedImage[] bird;
+  private BufferedImage currentBirdImage;
+  
   // physics vars
-  double gravity = 0.3;
-  double jumpForce = 9;
-  double terminalVelo = 8;
+  private double vertSpeed          = 0;
+  private final double gravity      = 0.3;
+  private final double jumpForce    = 9;
+  private final double terminalVelo = 9;
 
   // misc vars
-  long lastTime = System.nanoTime();
+  long lastTime = System.currentTimeMillis();
 
   /** 
    * Player Constructor
    */
-  public Player(GamePanel gp, BufferedImage[] bird, KeyHandler keyH) {
+  public Player(GamePanel gp) {
     this.gp = gp;
-    this.bird = bird;
-    this.keyH = keyH;
+    this.bird = gp.ag.getBird();
     // set players pos
-    x = gp.screenWidth / 3;
-    y = gp.screenHeight / 2;
-    width = bird[0].getWidth();
-    height = bird[0].getHeight();
-    currentBirdImage = bird[0];
+    this.x = gp.screenWidth / 3;
+    this.y = gp.screenHeight / 2;
+    // set player dims
+    this.width = bird[0].getWidth();
+    this.height = bird[0].getHeight();
+    // misc
+    this.isAlive = true;
+    this.score = 0;
+    this.currentBirdImage = bird[0];
     this.c = new Collision((int)x, (int)y, width, height);
   }
 
   /**
    * Update player object based on time delta
-   * @param delta time difference
    */
   public void update() {
     if (isAlive) {
       // Basic Physics
-      if (keyH.space) {
+      if (gp.keyH.Jump()) {
         // apply upwards force
         vertSpeed -= jumpForce;
-        keyH.space = false;
+        // prevents user from holding
+        gp.keyH.stopJump();
       }
       y += vertSpeed * gp.getDelta();
       vertSpeed += gravity * gp.getDelta();
       // check if hit floor
       if (y >= gp.screenHeight - gp.ground.getHeight() - height) {
         y = gp.screenHeight - gp.ground.getHeight() - height;
-        vertSpeed = 0;
+        isAlive = false;
       }
       // check if it hit ceiling
       if (y < 0) {
@@ -78,15 +83,26 @@ public class Player {
     }
   }
 
+  /**
+   * Draws the player with animations and rotation control
+   * @param g2 Graphics object to be drawn to
+   */
   public void draw(Graphics2D g2) {
-    c.render(g2);
-    long currentTime = System.nanoTime();
-    if (isAlive && currentTime - (gp.FPS * 2000000) >= lastTime) {
-      lastTime = System.nanoTime();
+    // c.render(g2);
+    long currentTime = System.currentTimeMillis();
+    // updates sprite every 60 milliseconds > 1 frame
+    if (isAlive && currentTime - (gp.FPS) >= lastTime) {
+      lastTime = System.currentTimeMillis();
       imageCounter = (imageCounter + 1) % 3;
       currentBirdImage = bird[imageCounter];
     }
+    // get old rotation
+    AffineTransform old = g2.getTransform();
+    // rotate bird image with respect to the vertical speed
+    g2.rotate(vertSpeed / 9, (int)x + (width/2), (int)y + (height/2));
     g2.drawImage(currentBirdImage, (int)x, (int)y, null);
+    // reset rotation to old -> leaves g2 consistent 
+    g2.setTransform(old);
   }
 
   /**
@@ -95,5 +111,52 @@ public class Player {
    */
   public int getScore() {
     return this.score;
+  }
+
+  /**
+   * Increment the score of the bird
+   */
+  public void incrementScore() {
+    this.score++;
+  }
+
+  /**
+   * Returns boolean status if player is alive
+   * @return
+   */
+  public boolean isAlive() {
+    return this.isAlive;
+  }
+
+  public void playerDied() {
+    this.isAlive = false;
+  }
+
+  /**
+   * Gets player's collision
+   * @return Collision object
+   */
+  public Collision getCollision() {
+    return c;
+  }
+
+  public void defaultValues() {
+    // set players pos
+    this.x = gp.screenWidth / 3;
+    this.y = gp.screenHeight / 2;
+    this.c.setXCol((int)x);
+    this.c.setYCol((int)y);
+    // set misc
+    this.isAlive = true;
+    this.score = 0;
+    this.vertSpeed = 0;
+  }
+
+  /**
+   * Return's an int of the player's horizontal positon
+   * @return int casted postion
+   */
+  public int horizontalPositon() {
+    return (int)this.x;
   }
 }

@@ -1,24 +1,19 @@
 package App;
 
-// import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
-// import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-// import java.io.IOException;
 import java.util.ArrayList;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
-// import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable {
   // game objects
-  ArrayList<Pipe> Pipes = new ArrayList<Pipe>();
-  Player player;
+  ArrayList<Pipe> pipes = new ArrayList<Pipe>();
+  int lastPipeX;
+  Player player = null;
 
   // screen control
   double ratio;
@@ -46,6 +41,7 @@ public class GamePanel extends JPanel implements Runnable {
   public Thread gameThread;
   final int FPS = 60;
   double delta = 0;
+  boolean offScreenPipe = false;
 
   /**
    * Used by App/main as main game panel (JPanel)
@@ -71,8 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     this.setLayout(null);
     // setup globals as needed
     this.addKeyListener(keyH);
-    this.player = new Player(this, ag.getBird(), keyH);
-    this.Pipes.add(new Pipe(300, 0));
+    newGame();
   }
 
   /**
@@ -123,47 +118,112 @@ public class GamePanel extends JPanel implements Runnable {
    */
   public void update() {
     if (gameState == PLAYING) {
+      if (!player.isAlive()) {
+        gameState = DEAD;
+      }
       // player update
       player.update();
-      // check if player is touching ground
 
-      // Pipes logic
-      // updates pipe
+      // update all pipes
+      offScreenPipe = false;
+      for (int pidx = 0; pidx < pipes.size(); pidx++) {
+        Pipe p = pipes.get(pidx);
+        p.update();
 
-      // delete old pipes if x is < 0
+        // delete old pipes if x is < 0
+        if (p.isOffScreen()) {
+          offScreenPipe = true;
+        }
 
-      // spawn new pipes
+        // check if crossed pipe
+        if (player.horizontalPositon() > p.horizontalPositon() && !p.hasBeenCrossed()) {
+          player.incrementScore();
+          p.crossed();
+        }
+
+        // check if pipes touch player
+        if (p.getCollisions()[0].touches(player.getCollision()) ||
+        p.getCollisions()[1].touches(player.getCollision())) {
+              player.playerDied();
+              gameState = DEAD;
+            }
+
+      }
+      // delete pipes off screen
+      if (offScreenPipe) {
+        pipes.remove(0);
+        pipes.add(createPipe((pipes.get(pipes.size()-1)).horizontalPositon() + screenWidth/3));
+      }
     }
   }
 
   // Draw things on JPanel
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
+    // caste graphics to 2D
     Graphics2D g2 = (Graphics2D) g;
 
-    
-    // draws the background image
+    // Draw Background
     for (int x = 0; x < screenWidth; x += background.getWidth()) {
       g2.drawImage(background, x, 0, null);
     }
     
-    // draw pipes
-    for (Pipe p : Pipes) {
+    // Draw Pipes
+    for (Pipe p : pipes) {
       p.draw(g2, ag);
     }
     
-    // draw baseline
+    // Draw Ground
     for (int x = 0; x < screenWidth; x += ground.getWidth()) {
       g2.drawImage(ground, x, screenHeight-ground.getHeight(), null);
     }
     
-    // bird
+    // Update Player
     player.draw(g2);
     
-    if (gameState == NEWGAME) ui.draw(g2);
+    // draw Score
+    String scoreStr = player.getScore() + "";
+    int xPos = (screenWidth - (scoreStr.length() * ag.getNumbers(0).getWidth())) / 2;
+    for (int i = 0; i < scoreStr.length(); i++) {
+      int scoreNum = Character.getNumericValue(scoreStr.charAt(i));
+      g2.drawImage(ag.getNumbers(scoreNum), xPos, screenHeight / 10, null);
+      xPos += ag.getNumbers(scoreNum).getWidth();
+    }
+
+    // Draw Correct UI
+    if (gameState != PLAYING) {
+      ui.setState(gameState);
+      ui.draw(g2);
+    }
   }
 
+  /**
+   * Get Time delta from gameThread
+   * @return nanosecond time delta from last frame
+   */
   public double getDelta() {
     return delta;
+  }
+
+  public void newGame() {
+    // Reset Player
+    if (player == null) this.player = new Player(this);
+    this.player.defaultValues();
+
+    // Reset Pipes
+    pipes.clear();
+    for (int i = 0; i < 4; i++) {
+      pipes.add(createPipe((i * (screenWidth/2)) + screenWidth));
+    }
+  }
+
+  /**
+   * Create a new pipe at given x cord, y is random
+   * @param x horizontal positon of pipe
+   * @return
+   */
+  private Pipe createPipe(int x) {
+    int randY = (int)(Math.random() * (ag.getPipe()[0].getHeight() - 60)) + 75;
+    return new Pipe(x, randY);
   }
 }

@@ -121,7 +121,7 @@ public class AssetGetter {
    * Getter for number assets
    * @return BufferedImage of numbers
    */
-  public BufferedImage[] getNumbers() {
-    return numbers;
+  public BufferedImage getNumbers(int num) {
+    return numbers[num];
   }
 }
