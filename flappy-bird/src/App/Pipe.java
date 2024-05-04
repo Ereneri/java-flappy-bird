@@ -22,9 +22,6 @@ public class Pipe {
   private final int pipeHeight = 320;
   private final int pipeWidth = 52;
 
-  // pipe movement
-  private int pipeSpeed = 3;
-
   /**
    * Pipe constructor, creates both pipes on given x
    * @param x X positon
@@ -64,8 +61,8 @@ public class Pipe {
   /**
    * 
    */
-  public void update() {
-    x -= pipeSpeed;
+  public void update(int speed) {
+    x -= speed;
     c1.setXCol(x);
     c2.setXCol(x);
   }

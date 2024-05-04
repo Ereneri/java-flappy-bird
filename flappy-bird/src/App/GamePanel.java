@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable {
-  // game objects
+  // Game Objects and vars
   ArrayList<Pipe> pipes = new ArrayList<Pipe>();
+  ArrayList<Ground> grounds = new ArrayList<Ground>();
   int lastPipeX;
   Player player = null;
   private int highScore = 0;
+  private int gameSpeed = 3;
 
   // screen control
   double ratio;
@@ -25,7 +27,6 @@ public class GamePanel extends JPanel implements Runnable {
   AssetGetter ag;
   String dir = "/assets";
   BufferedImage background;
-  BufferedImage ground;
 
   // game vars
   int gameState = 0;
@@ -42,7 +43,7 @@ public class GamePanel extends JPanel implements Runnable {
   public Thread gameThread;
   final int FPS = 60;
   double delta = 0;
-  boolean offScreenPipe = false;
+  boolean offScreen = false;
 
   /**
    * Used by App/main as main game panel (JPanel)
@@ -57,7 +58,6 @@ public class GamePanel extends JPanel implements Runnable {
     // background loading
     ag = new AssetGetter(dir);
     this.background = ag.getBackground();
-    this.ground = ag.getGround();
     
     // Panel setup
     this.setBounds(0, 0, screenWidth, screenHeight);
@@ -68,6 +68,9 @@ public class GamePanel extends JPanel implements Runnable {
     this.setLayout(null);
     // setup globals as needed
     this.addKeyListener(keyH);
+    for (int i = 0; i < screenWidth + ag.getGround().getWidth(); i += ag.getGround().getWidth()) {
+      grounds.add(new Ground(i, this));
+    }
     newGame();
   }
 
@@ -125,15 +128,29 @@ public class GamePanel extends JPanel implements Runnable {
       // player update
       player.update();
 
+      // update ground
+      offScreen = false;
+      for (int gidx = 0; gidx < grounds.size(); gidx++) {
+        Ground g = grounds.get(gidx);
+        g.update(gameSpeed);
+        if (g.isOffScreen()) {
+          offScreen= true;
+        }
+      }
+      if (offScreen) {
+        grounds.remove(0);
+        grounds.add(new Ground(grounds.get(grounds.size()-1).getPos(), this));
+      }
+
       // update all pipes
-      offScreenPipe = false;
+      offScreen = false;
       for (int pidx = 0; pidx < pipes.size(); pidx++) {
         Pipe p = pipes.get(pidx);
-        p.update();
+        p.update(gameSpeed);
 
         // delete old pipes if x is < 0
         if (p.isOffScreen()) {
-          offScreenPipe = true;
+          offScreen = true;
         }
 
         // check if crossed pipe
@@ -152,7 +169,7 @@ public class GamePanel extends JPanel implements Runnable {
 
       }
       // delete pipes off screen
-      if (offScreenPipe) {
+      if (offScreen) {
         pipes.remove(0);
         pipes.add(createPipe((pipes.get(pipes.size()-1)).horizontalPositon() + screenWidth/3));
       }
@@ -176,8 +193,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
     
     // Draw Ground
-    for (int x = 0; x < screenWidth; x += ground.getWidth()) {
-      g2.drawImage(ground, x, screenHeight-ground.getHeight(), null);
+    for (Ground gr : grounds) {
+      gr.draw(g2);
     }
     
     // Update Player

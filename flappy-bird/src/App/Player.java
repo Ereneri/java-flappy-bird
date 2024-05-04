@@ -22,9 +22,9 @@ public class Player {
   
   // physics vars
   private double vertSpeed          = 0;
-  private final double gravity      = 0.3;
+  private final double gravity      = 0.4;
   private final double jumpForce    = 9;
-  private final double terminalVelo = 9;
+  private final double terminalVelo = 8;
 
   // misc vars
   long lastTime = System.currentTimeMillis();
@@ -39,13 +39,13 @@ public class Player {
     this.x = gp.screenWidth / 3;
     this.y = gp.screenHeight / 2;
     // set player dims
-    this.width = bird[0].getWidth();
-    this.height = bird[0].getHeight();
+    this.width = bird[0].getWidth() - 5;
+    this.height = bird[0].getHeight() - 5;
     // misc
     this.isAlive = true;
     this.score = 0;
     this.currentBirdImage = bird[0];
-    this.c = new Collision((int)x, (int)y, width, height);
+    this.c = new Collision((int)x+4, (int)y+4, width, height);
   }
 
   /**
@@ -63,8 +63,8 @@ public class Player {
       y += vertSpeed * gp.getDelta();
       vertSpeed += gravity * gp.getDelta();
       // check if hit floor
-      if (y >= gp.screenHeight - gp.ground.getHeight() - height) {
-        y = gp.screenHeight - gp.ground.getHeight() - height;
+      if (y >= gp.screenHeight - gp.ag.getGround().getHeight() - height) {
+        y = gp.screenHeight - gp.ag.getGround().getHeight() - height;
         isAlive = false;
       }
       // check if it hit ceiling
@@ -78,8 +78,8 @@ public class Player {
         else vertSpeed = terminalVelo;
       }
       // update collision box
-      c.setXCol((int)x);
-      c.setYCol((int)y);
+      c.setXCol((int)x+2);
+      c.setYCol((int)y+4);
     }
   }
 
