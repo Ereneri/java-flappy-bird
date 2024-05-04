@@ -10,9 +10,11 @@ public class AssetGetter {
   private BufferedImage ground;
   private BufferedImage banner;
   private BufferedImage gameover;
+  private BufferedImage highScore;
   private BufferedImage[] pipe;
   private BufferedImage[] bird;
   private BufferedImage[] numbers;
+  private BufferedImage[] smallNumbers;
 
   /**
    * AssetGetter constructor, gets all assets from dir folder
@@ -60,11 +62,26 @@ public class AssetGetter {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    // get bird
+    // get highscore asset
+    try {
+      this.highScore = ImageIO.read(getClass().getResource(dir + "/highScore2.png"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    // get Big numbers
     this.numbers = new BufferedImage[10];
     try {
       for (int i = 0; i < 10; i++) {
         this.numbers[i] = ImageIO.read(getClass().getResource(dir + "/" + i + ".png"));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    // get small numbers
+    this.smallNumbers = new BufferedImage[10];
+    try {
+      for (int i = 0; i < 10; i++) {
+        this.smallNumbers[i] = ImageIO.read(getClass().getResource(dir + "/s" + i + ".png"));
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -117,11 +134,23 @@ public class AssetGetter {
     return gameover;
   }
 
-    /**
+  /**
    * Getter for number assets
    * @return BufferedImage of numbers
    */
   public BufferedImage getNumbers(int num) {
     return numbers[num];
+  }
+
+  /**
+   * Getter for number assets
+   * @return BufferedImage of numbers
+   */
+  public BufferedImage getSmallNumbers(int num) {
+    return smallNumbers[num];
+  }
+
+  public BufferedImage getHighScore() {
+    return highScore;
   }
 }

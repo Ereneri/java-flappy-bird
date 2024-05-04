@@ -14,6 +14,7 @@ public class GamePanel extends JPanel implements Runnable {
   ArrayList<Pipe> pipes = new ArrayList<Pipe>();
   int lastPipeX;
   Player player = null;
+  private int highScore = 0;
 
   // screen control
   double ratio;
@@ -143,10 +144,11 @@ public class GamePanel extends JPanel implements Runnable {
 
         // check if pipes touch player
         if (p.getCollisions()[0].touches(player.getCollision()) ||
-        p.getCollisions()[1].touches(player.getCollision())) {
-              player.playerDied();
-              gameState = DEAD;
-            }
+            p.getCollisions()[1].touches(player.getCollision())) {
+          player.playerDied();
+          if (player.getScore() > highScore) highScore = player.getScore();
+          gameState = DEAD;
+        }
 
       }
       // delete pipes off screen
@@ -225,5 +227,9 @@ public class GamePanel extends JPanel implements Runnable {
   private Pipe createPipe(int x) {
     int randY = (int)(Math.random() * (ag.getPipe()[0].getHeight() - 60)) + 75;
     return new Pipe(x, randY);
+  }
+
+  public int getHighScore() {
+    return highScore;
   }
 }
