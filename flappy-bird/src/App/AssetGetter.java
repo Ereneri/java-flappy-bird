@@ -150,6 +150,10 @@ public class AssetGetter {
     return smallNumbers[num];
   }
 
+  /**
+   * Getter for highscore banner
+   * @return BufferedImage of score board
+   */
   public BufferedImage getHighScore() {
     return highScore;
   }

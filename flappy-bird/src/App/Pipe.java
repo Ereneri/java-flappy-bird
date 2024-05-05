@@ -18,7 +18,7 @@ public class Pipe {
   private boolean hasBeenCrossed = false;
 
   // Sizing Variables
-  private final int pipeOpeningSize = 60;
+  private final int pipeOpeningSize = 50;
   private final int pipeHeight = 320;
   private final int pipeWidth = 52;
 

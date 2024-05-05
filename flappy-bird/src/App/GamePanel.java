@@ -224,6 +224,9 @@ public class GamePanel extends JPanel implements Runnable {
     return delta;
   }
 
+  /**
+   * Resets Environment for new game
+   */
   public void newGame() {
     // Reset Player
     if (player == null) this.player = new Player(this);
@@ -246,6 +249,10 @@ public class GamePanel extends JPanel implements Runnable {
     return new Pipe(x, randY);
   }
 
+  /**
+   * Gets the current highest score
+   * @return highest score
+   */
   public int getHighScore() {
     return highScore;
   }
