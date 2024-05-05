@@ -13,7 +13,6 @@ public class GamePanel extends JPanel implements Runnable {
   // Game Objects and vars
   ArrayList<Pipe> pipes = new ArrayList<Pipe>();
   ArrayList<Ground> grounds = new ArrayList<Ground>();
-  int lastPipeX;
   Player player = null;
   private int highScore = 0;
   private int gameSpeed = 3;
@@ -118,10 +117,11 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   /**
-   * Updates frame with key input
+   * Updates frame
    */
   public void update() {
     if (gameState == PLAYING) {
+      // check if player died
       if (!player.isAlive()) {
         gameState = DEAD;
       }
@@ -176,10 +176,12 @@ public class GamePanel extends JPanel implements Runnable {
     }
   }
 
-  // Draw things on JPanel
+  /**
+   * Draws components to viewable area
+   */
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
-    // caste graphics to 2D
+    // cast graphics to 2D
     Graphics2D g2 = (Graphics2D) g;
 
     // Draw Background

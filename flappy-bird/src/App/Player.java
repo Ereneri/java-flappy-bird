@@ -11,6 +11,9 @@ public class Player {
   private int width, height;
   private boolean isAlive;
 
+  // AI vars
+  private boolean jump = false;
+
   // object vars
   private GamePanel gp;
   private Collision c;
@@ -54,11 +57,13 @@ public class Player {
   public void update() {
     if (isAlive) {
       // Basic Physics
-      if (gp.keyH.Jump()) {
+      if (gp.keyH.didJump() || jump) {
         // apply upwards force
         vertSpeed -= jumpForce;
         // prevents user from holding
         gp.keyH.stopJump();
+        // reset jump
+        jump = false;
       }
       y += vertSpeed * gp.getDelta();
       vertSpeed += gravity * gp.getDelta();
@@ -158,5 +163,12 @@ public class Player {
    */
   public int horizontalPositon() {
     return (int)this.x;
+  }
+
+  /**
+   * Make's Player Jump
+   */
+  public void jump() {
+    this.jump = true;
   }
 }

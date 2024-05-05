@@ -19,7 +19,7 @@ public class KeyHandler implements KeyListener {
    * Gets state of keyboard jumping input
    * @return boolean value whether user Jumped
    */
-  public boolean Jump() {
+  public boolean didJump() {
     return space;
   }
 
