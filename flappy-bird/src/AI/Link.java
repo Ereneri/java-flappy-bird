@@ -22,6 +22,18 @@ public class Link {
   }
 
   /**
+   * Basic Link with no weight or isenabled set
+   * @param inputID Neuron id of input
+   * @param outputID Neuron id of output
+   */
+  public Link(int inputID, int outputID) {
+    this.inputID = inputID;
+    this.outputID = outputID;
+    this.weight = 0.0;
+    this.isEnabled = true;
+  }
+
+  /**
    * Updates the link's weight
    * @param newWeight
    */
@@ -30,6 +42,35 @@ public class Link {
   }
 
   public double getWeight() {
-    return weight;
+    return this.weight;
   }
+
+  public int getInputNeuron() {
+    return this.inputID;
+  }
+
+  public int getOutputNeuron() {
+    return this.outputID;
+  }
+
+  public boolean getIsEnabled() {
+    return this.isEnabled;
+  }
+
+  public void enable() {
+    this.isEnabled = true;
+  }
+
+  public void disable() {
+    this.isEnabled = false;
+  }
+
+  /**
+   * Get input and output IDs
+   * @return index 0 is inputID and index 1 is outputID
+   */
+  public int[] getLinkIDs() {
+    return new int[]{inputID, outputID};
+  }
+
 }

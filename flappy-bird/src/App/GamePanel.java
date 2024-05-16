@@ -1,5 +1,7 @@
 package App;
 
+import AI.*;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -78,6 +80,16 @@ public class GamePanel extends JPanel implements Runnable {
    */
   public void startGameThread() {
     gameThread = new Thread(this);
+    // Init population
+    Config c = new Config(4, 2, 100);
+    Population pop = new Population(c);
+    // evaluate population after all are dead...
+
+    // select N base individuals
+    
+    // crossover/mutation
+
+
     try {
       //waits for this current thread to die before beginning execution
       gameThread.join();
