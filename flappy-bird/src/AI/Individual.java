@@ -1,5 +1,7 @@
 package AI;
 
+import App.GamePanel;
+
 public class Individual {
   private Genome genome;
   private double fitness;
@@ -19,5 +21,10 @@ public class Individual {
 
   public void setFitness(double newFitness) {
     this.fitness = newFitness;
+  }
+
+  public double run() {
+    // should run a game of gamepanel
+    return 0.0;
   }
 }

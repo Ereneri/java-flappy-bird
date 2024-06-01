@@ -4,21 +4,27 @@ public class Neuron {
   // Neuron Variables
   private int nid;
   private double bias;
-  private TYPE type;
+  private int type;
   private Activation activation;
-  
-  // enum of all available types
-  public enum TYPE {
-    INPUT,
-    OUTPUT,
-    HIDDEN;
+
+  public Neuron(int nid, double bias, int type, Activation activation) {
+    this.nid = nid;
+    this.bias = bias;
+    this.type = type;
+    this.activation = activation;
   }
 
   public Neuron(int nid, double bias, Activation activation) {
     this.nid = nid;
     this.bias = bias;
-    // this.type = type;
+    this.type = Population.HIDDEN;
     this.activation = activation;
+  }
+
+  public Neuron(int nid) {
+    this.nid = nid;
+    this.bias = 1.0;
+    this.activation = null;
   }
 
   public double getBias() {
@@ -29,11 +35,27 @@ public class Neuron {
     return this.nid;
   }
 
-  public TYPE getType() {
+  /**
+   * Get's the type of the neuron
+   * @return 0-Input, 1-Output, 3-Hidden
+   */
+  public int getType() {
     return this.type;
   }
 
-  public Activation geActivation() {
+  /**
+   * Gets the activation object of this neuron
+   * @return Activation object
+   */
+  public Activation getActivation() {
     return this.activation;
+  }
+
+  public double getActivationValue() {
+    return this.activation.getActivationValue();
+  }
+
+  public void setActivationValue(double value) {
+    this.activation.setActivationValue(value);
   }
 }

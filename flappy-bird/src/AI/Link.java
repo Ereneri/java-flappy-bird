@@ -29,7 +29,7 @@ public class Link {
   public Link(int inputID, int outputID) {
     this.inputID = inputID;
     this.outputID = outputID;
-    this.weight = 0.0;
+    this.weight = 1.0;
     this.isEnabled = true;
   }
 

@@ -10,6 +10,8 @@ import java.util.Set;
 public class Population {
   // basic population variabkes
   private List<Individual> individuals;
+  private Config cfg;
+  private Mutation mutation;
 
   // agent variables
   private int numInputs;
@@ -18,7 +20,13 @@ public class Population {
   // Genome variables
   private int highestGID;
 
+  // Types of Neurons 
+  public final static int INPUT = 0;
+  public final static int OUTPUT = 1;
+  public final static int HIDDEN = 3;
+
   public Population(Config c) {
+    this.cfg = c;
     this.numInputs = c.getNumInputs();
     this.numOutputs = c.getNumOutputs();
     for (int i = 0; i < c.getPopulationSize(); i++) {
@@ -26,115 +34,91 @@ public class Population {
     }
   }
 
-  //* Misc Helper */
+  //* Runner Code */
+
+  public void run(int generation) {
+    for (int i = 0; i < generation; i++) {
+      // run the simulation
+      for (Individual ind : this.individuals) {
+        ind.setFitness(ind.run()); // boots us back to GamePanel.java
+      }
+      // reproduce the individuals
+      this.individuals = reproduce();
+    }
+  }
+
+  /**
+   * Helper function to reproduce the individuals for new generation
+   * @return new Generation of individuals
+   */
+  private List<Individual> reproduce() {
+    // get old generation and sort by fitness
+    individuals.sort((a, b) -> Double.compare(b.getFitness(), a.getFitness()));
+    int cutoff = (int)(Math.ceil(cfg.getSurvivalThreshold() * individuals.size()));
+
+    // create new generation
+    List<Individual> newGeneration = new ArrayList<Individual>();
+    int spawnSize = individuals.size();
+    
+    // create new individuals
+    while (spawnSize-- >= 0) {
+      Individual dominant = individuals.get((int)(Math.random() * cutoff));
+      Individual recessive = individuals.get((int)(Math.random() * cutoff));
+      Individual offspring = new Individual(crossover(dominant, recessive), 0.0);
+      // using cfg mutate rate to determine if we should mutate
+      if (cfg.newValue() < cfg.getMutationRate()) {
+        mutation.mutate(dominant.getGenome());
+      }
+      newGeneration.add(offspring);
+    }
+    return newGeneration;
+  }
+
+  /**
+   * Helper function to create a new Genome
+   * @return New Genome with input and output neurons
+   */
   private Genome newGenome() {
     Genome g = new Genome(highestGID++, numInputs, numOutputs);
-    // TODO fix new Neuron setup 
-    for (int neuronID = 0; neuronID < numOutputs; neuronID++) {
-      g.addNeuron(new Neuron(neuronID, 0.0, null));
-    }
-    // Connect all the neurons with links
+    // create input neurons -> may not need to create new neurons?
     for (int i = 0; i < numInputs; i++) {
-      int inputID = -i - 1;
-      for (int outputID = 0; outputID < numOutputs; outputID++) {
-        g.addLinks(new Link(inputID, outputID));
+      g.addNeuron(new Neuron(g.getNextNID(), 0.0, INPUT, new Activation()));
+    }
+    // create output neurons
+    for (int i = 0; i < numOutputs; i++) {
+      g.addNeuron(new Neuron(g.getNextNID(), 0.0, OUTPUT, new Activation()));
+    }
+    // create links between input and output neurons
+    for (Neuron in : g.getNeurons()) {
+      for (Neuron out : g.getNeurons()) {
+        if (in.getType() == INPUT && out.getType() == OUTPUT) {
+          g.addLinks(new Link(in.getNID(), out.getNID()));
+        }
       }
     }
     return g;
   }
 
-  private Neuron randomNeuron(Genome g) {
-    int randomIDX = (int)(Math.random() * g.getNeurons().size());
-    return g.findNeuron(randomIDX);
-  }
-
-  /**
-   * Helper Function to check if adding a new link would cause a cycle
-   * @param g Genome graph to be check
-   * @param inputID Input Id for link to be added
-   * @param outputID output id for link to be added
-   * @return Boolean value whether this new link would cause a cycle
-   */
-  private boolean wouldCreateCycle(Genome g, int inputID, int outputID) {
-    // create map of all the nodes and their children
-    HashMap<Integer, List<Integer>> childMap = new HashMap<Integer, List<Integer>>();
-    for (Link l : g.getLinks()) {
-      addLinkToMap(childMap, l);
-    }
-    addLinkToMap(childMap, new Link(inputID, outputID));
-
-    // Bulk of DFS cycle check for directed graph -> https://www.geeksforgeeks.org/detect-cycle-in-a-graph/
-    int length = g.getNeurons().size();
-    // store both on visited nodes and recursively visited nodes
-    boolean[] visited = new boolean[length];
-    boolean[] recStack = new boolean[length];
-
-    // loop over all neurons checking for cycles
-    for (Neuron n : g.getNeurons()) {
-      if (isCycle(n.getNID(), visited, recStack, childMap)) return true;
-    }
-    return false;
-  }
-
-  /**
-   * Helper Function to add a Link to a given hashmap, will create list if map doesn't already have one
-   * @param childMap Hashmap to have link added to
-   * @param l Link to be inserted into the hashmap
-   */
-  private void addLinkToMap(HashMap<Integer, List<Integer>> childMap, Link l) {
-    int in = l.getInputNeuron();
-    int out = l.getOutputNeuron();
-    // get or create list and add out to it, update map
-    List<Integer> tmp = childMap.getOrDefault(in, new ArrayList<Integer>());
-    tmp.add(out);
-    childMap.put(in, tmp);
-  }
-
-  /**
-   * Helper function to check if there is a cycle within the hashmap
-   * @param i neuron id
-   * @param visited boolean array of if that neuron has been completely visited
-   * @param recStack boolean array of if a neuron has been visited within the recursion stack
-   * @param map mapping of all the neurons from in to out
-   * @return if there is a cycle
-   */
-  private boolean isCycle(int i, boolean[] visited, boolean[] recStack, HashMap<Integer, List<Integer>> map) {
-    // Checks if we have seen the same node already in the rec stack or have marked it
-    if (recStack[i]) return true;
-    if (visited[i]) return false;
-
-    visited[i] = true;
-    recStack[i] = true;
-
-    // loop over all children of the current node
-    for (Integer output : map.get(i)) {
-      // check neurons child recurively
-      if (isCycle(output, visited, recStack, map)) return true;
-    }
-    // if we haven't returned yet means there wasn't a cycle for this neuron, thus reset recStack to false
-    recStack[i] = false;
-    return false;
-  }
-
-  //* Runner Code */
-
-  // TODO -> tbh dunno what this needs to do yet
-  public Individual run() {
-    return null;
-  }
-
   //* Crossover Logic */
 
-  public Neuron crossoverNeurons(Neuron a, Neuron b) {
+  /**
+   * Helper Function for crossover of Neurons
+   * @return Crossed over Neuron -> randomly picks bias and activation
+   */
+  private Neuron crossoverNeurons(Neuron a, Neuron b) {
     assert(a.getNID() == b.getNID());
     int neuronID = a.getNID();
     // randomly pick one of the bias and activations
     double bias = (Math.random() % 1) == 0 ? a.getBias() : b.getBias();
-    Activation activation = (Math.random() % 1) == 0 ? a.geActivation() : b.geActivation();
+    Activation activation = (Math.random() % 1) == 0 ? a.getActivation() : b.getActivation();
     return new Neuron(neuronID, bias, activation);
   }
 
-  public Link crossoverLinks(Link a, Link b) {
+  /**
+   * Helper Function for crossover of Links
+   * @return Crossed over Link -> randomly picks weight and isEnabled
+   */
+  private Link crossoverLinks(Link a, Link b) {
     assert(a.getInputNeuron() == b.getInputNeuron() && a.getOutputNeuron() == b.getOutputNeuron());
     int inputID = a.getInputNeuron();
     int outputID = a.getOutputNeuron();
@@ -144,6 +128,12 @@ public class Population {
     return new Link(inputID, outputID, weight, isEnabled);
   }
 
+  /**
+   * Crossover of two individuals to create a new offspring
+   * @param dominant Individual with higher fitness
+   * @param recessive Individual with lower fitness
+   * @return Offspring of the two individuals
+   */
   public Genome crossover(Individual dominant, Individual recessive) {
     // create offspring of both indivudals
     Genome offspring = new Genome(highestGID++, 
@@ -164,36 +154,5 @@ public class Population {
       else offspring.addLinks(crossoverLinks(recessiveLink, l));
     }
     return offspring;
-  }
-
-  //* Mutation Logic */
-
-  public void mutateAddLink(Genome g) {
-    int inputID = randomNeuron(g).getNID();
-    int outputID = randomNeuron(g).getNID();
-
-    // don't dupe links
-    Link l = g.findLink(inputID, outputID);
-    if (l != null) {
-      l.enable();
-    }
-
-    // check if it would create cycle
-    if (wouldCreateCycle(g, inputID, outputID)) return;
-
-    Link newLink = new Link(inputID, outputID);
-    g.addLinks(newLink);
-  }
-
-  public void mutateRemoveLink(Genome g) {
-    // TOOD
-  }
-
-  public void mutateNewHiddenLink(Genome g) {
-    // TOOD
-  }
-
-  public void mutateRemoveHiddenLink(Genome g) {
-    // TOOD
   }
 }

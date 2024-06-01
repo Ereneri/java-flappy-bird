@@ -8,7 +8,7 @@ public class Config {
   private int numOutputs;
   private int populationSize;
 
-  // Mutation Values
+  // Mutation Values based on normal distribution
   private double initMean = 0.0;
   private double initSD = 1.0;
   private double min = -20.0;
@@ -16,6 +16,7 @@ public class Config {
   private double mutationRate = 0.2;
   private double mutatePower = 1.2;
   private double replaceRate = 0.05;
+  private double survivalThreshold = 0.2;
 
   // Misc.
   private Random rnd;
@@ -28,6 +29,18 @@ public class Config {
     this.rnd = new Random();
   }
 
+  public double getMutationRate() {
+    return this.mutationRate;
+  }
+
+  public double getReplaceRate() {
+    return this.replaceRate;
+  }
+
+  public double getSurvivalThreshold() {
+    return this.survivalThreshold;
+  }
+
   /**
    * Gets new value based on standard mean of 0.0 and SD of 1.0, min and max of +/- 20
    * @return new value based on gaussion dist.
@@ -37,6 +50,11 @@ public class Config {
     return clamp(rnd.nextGaussian(initMean, initSD));
   }
 
+  /**
+   * Mutate the value based on mutation rate and power
+   * @param value
+   * @return
+   */
   public double mutateDelta(double value) {
     double delta = clamp(rnd.nextGaussian(0.0, mutatePower));
     return clamp(value + delta);
