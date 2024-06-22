@@ -79,7 +79,7 @@ public class Pipe {
    * Gets rightmost X cordinate of pipes
    * @return int value of X
    */
-  public int horizontalPositon() {
+  public int getHorizontalPositon() {
     return x + pipeWidth;
   }
   /**

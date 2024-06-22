@@ -45,7 +45,7 @@ public class Interface {
      * Some of the grossest code i have ever written, please eren ffs fix this
      */
     // print current score
-    String scoreStr = gp.player.getScore() + "";
+    String scoreStr = gp.getGameScore() + "";
     int xPos = ((gp.screenWidth - hs.getWidth()) / 2) + hs.getWidth() - (scoreStr.length() * gp.ag.getSmallNumbers(0).getWidth()) - 25;
     for (int i = 0; i < scoreStr.length(); i++) {
       int scoreNum = Character.getNumericValue(scoreStr.charAt(i));

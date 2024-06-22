@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 
 public class Player {
   // Player variables
+  public int playerID;
   private double x, y;
   private int score;
   private int width, height;
@@ -35,7 +36,8 @@ public class Player {
   /** 
    * Player Constructor
    */
-  public Player(GamePanel gp) {
+  public Player(GamePanel gp, int playerID) {
+    this.playerID = playerID;
     this.gp = gp;
     this.bird = gp.ag.getBird();
     // set players pos
@@ -57,31 +59,30 @@ public class Player {
   public void update() {
     if (isAlive) {
       // Basic Physics
-      if (gp.keyH.didJump() || jump) {
-        // apply upwards force
+      if (jump) {
         vertSpeed -= jumpForce;
-        // prevents user from holding
-        gp.keyH.stopJump();
-        // reset jump
         jump = false;
       }
       y += vertSpeed * gp.getDelta();
       vertSpeed += gravity * gp.getDelta();
-      // check if hit floor
+
+      // if we hit the ground do not pass thru the floor
       if (y >= gp.screenHeight - gp.ag.getGround().getHeight() - height) {
         y = gp.screenHeight - gp.ag.getGround().getHeight() - height;
-        isAlive = false;
       }
+
       // check if it hit ceiling
       if (y < 0) {
         y = 0;
         vertSpeed = 0;
       }
+
       // cap vertSpeed to terminal velo
       if (Math.abs(vertSpeed) > terminalVelo) {
         if (vertSpeed < 0) vertSpeed = -terminalVelo;
         else vertSpeed = terminalVelo;
       }
+
       // update collision box
       c.setXCol((int)x+2);
       c.setYCol((int)y+4);
@@ -133,8 +134,8 @@ public class Player {
     return this.isAlive;
   }
 
-  public void playerDied() {
-    this.isAlive = false;
+  public void setAliveStatus(boolean status) {
+    this.isAlive = status;
   }
 
   /**
@@ -158,11 +159,28 @@ public class Player {
   }
 
   /**
-   * Return's an int of the player's horizontal positon
+   * Return's an int of the player's X positon
    * @return int casted postion
    */
-  public int horizontalPositon() {
+  public int getX() {
     return (int)this.x;
+  }
+
+
+  /**
+   * Return's an int of the player's Y positon
+   * @return int casted postion
+   */
+  public int getY() {
+    return (int)this.y;
+  }
+
+  /**
+   * Return's an int of the player's Height
+   * @return int casted postion
+   */
+  public int getHeight() {
+    return this.height;
   }
 
   /**
