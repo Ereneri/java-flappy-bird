@@ -34,19 +34,6 @@ public class Population {
     }
   }
 
-  //* Runner Code */
-
-  public void run(int generation) {
-    for (int i = 0; i < generation; i++) {
-      // run the simulation
-      for (Individual ind : this.individuals) {
-        ind.setFitness(ind.run()); // boots us back to GamePanel.java
-      }
-      // reproduce the individuals
-      this.individuals = reproduce();
-    }
-  }
-
   /**
    * Helper function to reproduce the individuals for new generation
    * @return new Generation of individuals

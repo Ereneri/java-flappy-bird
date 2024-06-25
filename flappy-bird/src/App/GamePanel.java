@@ -238,7 +238,9 @@ public class GamePanel extends JPanel implements Runnable {
 
     // Update Player
     for (Player player : players) {
-      player.draw(g2);
+      if (player.isAlive()) {
+        player.draw(g2);
+      }
     }
 
     // draw Score
@@ -277,6 +279,7 @@ public class GamePanel extends JPanel implements Runnable {
     for (Player player : players) {
       player.defaultValues();
     }
+    gameScore = 0;
     System.out.println("New Game");
     System.out.println("Players: " + players.size());
     System.out.println("Alive Players: " + numberOfAlivePlayers);
@@ -309,7 +312,6 @@ public class GamePanel extends JPanel implements Runnable {
   }
 
   public void playerDied(Player p) {
-    System.out.println("Player " + p.playerID + " Died");
     numberOfAlivePlayers -= 1;
     p.setAliveStatus(false);
 

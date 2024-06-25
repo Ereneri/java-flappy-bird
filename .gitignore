@@ -25,3 +25,8 @@ replay_pid*
 
 # any DS_Stores
 *.DS_Store
+
+*.idea/
+out/
+java-flappy-bird.iml
+

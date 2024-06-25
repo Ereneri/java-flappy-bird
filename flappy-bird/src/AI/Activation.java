@@ -17,8 +17,6 @@ public class Activation {
 
   /**
    * Calculate Weighted Sum Input Nodes and Links
-   * @implNote If it returns False, it means the size of inputs neurons and links didn't match
-   * @return boolean of whether it updated the activation
    */
   public void updateActivation(List<Neuron> InputNeurons, List<Link> InputLinks) {
     //TODO REVISIT THIS -> may be wrong
@@ -47,7 +45,7 @@ public class Activation {
 
   /**
    * Return activation Value of Node 
-   * @return
+   * @return the activiation value
    */
   public double getActivationValue() {
     return this.activationValue;
@@ -57,10 +55,10 @@ public class Activation {
 
   /**
    * Sigmoid Activation Function
-   * @param x
-   * @return
+   * @param x input
+   * @return sigmoid of x
    */
-  private double sigmoid(double x) {
+  public static double sigmoid(double x) {
     return 1 / (1 + Math.exp(-x));
   }
 
