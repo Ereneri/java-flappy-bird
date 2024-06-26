@@ -162,8 +162,8 @@ public class Player {
    * Return's an int of the player's X positon
    * @return int casted postion
    */
-  public int getX() {
-    return (int)this.x;
+  public double getX() {
+    return this.x;
   }
 
 
@@ -171,8 +171,8 @@ public class Player {
    * Return's an int of the player's Y positon
    * @return int casted postion
    */
-  public int getY() {
-    return (int)this.y;
+  public double getY() {
+    return this.y;
   }
 
   /**
@@ -188,5 +188,9 @@ public class Player {
    */
   public void jump() {
     this.jump = true;
+  }
+
+  public double getVelocity() {
+    return this.vertSpeed;
   }
 }

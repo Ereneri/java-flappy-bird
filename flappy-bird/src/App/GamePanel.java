@@ -7,8 +7,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPanel;
 
@@ -21,7 +21,7 @@ public class GamePanel extends JPanel implements Runnable {
   private int highScore = 0;
   private int gameSpeed = 3;
   private int gameScore = 0;
-  private int populationSize = 10;
+  private int populationSize = 1;
 
   // screen control
   double ratio;
@@ -142,12 +142,60 @@ public class GamePanel extends JPanel implements Runnable {
       if (numberOfAlivePlayers == 0) {
         gameState = DEAD;
       }
-      // get
+      // first pipe in array that hasn't been crossed yet
+      Pipe targetPipe = null;
 
+      // update all pipes
+      offScreen = false;
+      for (int pidx = 0; pidx < pipes.size(); pidx++) {
+        Pipe pipe = pipes.get(pidx);
+        pipe.update(gameSpeed);
+
+        // set out target
+        if (targetPipe == null && pipe.hasBeenCrossed()) {
+          targetPipe = pipe;
+        }
+
+        // delete old pipes if x is < 0
+        if (pipe.isOffScreen()) {
+          offScreen = true;
+        }
+
+        // Check if this pipe is pass our current bird y
+        if ((screenWidth / 3) > pipe.getHorizontalPositon() && pipe.hasBeenCrossed()) {
+          // update score here ideally
+          gameScore += 1;
+          pipe.crossed();
+        }
+
+        for (Player player : players) {
+          // only update players that are alive
+          if (player.isAlive()) {
+            // check if pipes touch player
+            if (pipe.getCollisions().get("top").touches(player.getCollision()) ||
+                    pipe.getCollisions().get("bottom").touches(player.getCollision())) {
+              playerDied(player);
+            }
+          }
+        }
+      }
+      // delete pipes off screen
+      if (offScreen) {
+        pipes.remove(0);
+        pipes.add(createPipe((pipes.get(pipes.size() - 1)).getHorizontalPositon() + screenWidth / 3));
+      }
 
       // Update each player
       for (Player player : players) {
         if (player.isAlive()) {
+          // get inputs for
+          assert targetPipe != null;
+          List<Double> inputs = getInputs(player, targetPipe);
+          System.out.print("Data: ");
+          for (Double d : inputs) {
+            System.out.print(d + ",");
+          }
+          System.out.println();
           // update player
           player.update();
           // should player jump
@@ -177,42 +225,8 @@ public class GamePanel extends JPanel implements Runnable {
         grounds.remove(0);
         grounds.add(new Ground(grounds.get(grounds.size() - 1).getPos(), this));
       }
-
-      // update all pipes
-      offScreen = false;
-      for (int pidx = 0; pidx < pipes.size(); pidx++) {
-        Pipe pipe = pipes.get(pidx);
-        pipe.update(gameSpeed);
-
-        // delete old pipes if x is < 0
-        if (pipe.isOffScreen()) {
-          offScreen = true;
-        }
-
-        // Check if this pipe is pass our current bird y
-        if ((screenWidth / 3) > pipe.getHorizontalPositon() && !pipe.hasBeenCrossed()) {
-          // update score here ideally
-          gameScore += 1;
-          pipe.crossed();
-        }
-
-        for (Player player : players) {
-          // only update players that are alive
-          if (player.isAlive()) {
-            // check if pipes touch player
-            if (pipe.getCollisions()[0].touches(player.getCollision()) ||
-                pipe.getCollisions()[1].touches(player.getCollision())) {
-              playerDied(player);
-            }
-          }
-        }
-      }
-      // delete pipes off screen
-      if (offScreen) {
-        pipes.remove(0);
-        pipes.add(createPipe((pipes.get(pipes.size() - 1)).getHorizontalPositon() + screenWidth / 3));
-      }
     }
+
   }
 
   /**
@@ -324,5 +338,33 @@ public class GamePanel extends JPanel implements Runnable {
 
   public int getGameScore() {
     return gameScore;
+  }
+
+  /**
+   * Get all the input data for NN
+   * @param player Player object to be used to get distances
+   * @param pipe Nearest Pipe that hasn't been crossed
+   * @return List of doubles to be passed to NN
+   */
+  private List<Double> getInputs(Player player, Pipe pipe) {
+    List<Double> ans = new ArrayList<>();
+
+    double birdsVertical = player.getY();
+    double birdsHorizontal = player.getX();
+    double topPipe = (double)pipe.getY().get("top");
+    double bottomPipe = (double)pipe.getY().get("bottom");
+    double distanceToPipes = (double)pipe.getHorizontalPositon();
+
+    // add player's y positon
+    ans.add(birdsVertical);
+    // add player velo
+    ans.add(player.getVelocity());
+    // add delta to top pipe (y)
+    ans.add(topPipe - birdsVertical);
+    // add delta to bottom pipe (y)
+    ans.add(bottomPipe - birdsVertical);
+    // add distance to pipes (x)
+    ans.add(distanceToPipes - birdsHorizontal);
+    return ans;
   }
 }

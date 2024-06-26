@@ -3,6 +3,7 @@ package App;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 
 public class Pipe {
   // Bottom Pipe
@@ -84,10 +85,10 @@ public class Pipe {
   }
   /**
    * Gets both collision boxs from the top and bottom pipe
-   * @return index 0 contains bottom pipe, index 1 contains top pipe
+   * @return Map of collisions, "top" AND "bottom"
    */
-  public Collision[] getCollisions() {
-    return new Collision[]{c1, c2};
+  public Map<String, Collision> getCollisions() {
+    return Map.of("bottom", c1, "top", c2);
   }
 
   /**
@@ -102,6 +103,22 @@ public class Pipe {
    * @return boolean of has been crossed
    */
   public boolean hasBeenCrossed() {
-    return hasBeenCrossed;
+    return !hasBeenCrossed;
+  }
+
+  /**
+   * Gets both Y positions of the top and bottom pipes
+   * @return Map of "top" and "bottom"
+   */
+  public Map<String, Integer> getY() {
+    return Map.of("bottom", y1, "top", y2);
+  }
+
+  /**
+   * Return just the X position from left most positon
+   * @return integer of x position
+   */
+  public int getX() {
+    return x;
   }
 }
