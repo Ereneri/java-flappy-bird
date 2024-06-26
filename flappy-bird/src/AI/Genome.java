@@ -117,6 +117,20 @@ public class Genome {
     throw new Exception("No Output Neuron Found"); // Default return if no output neuron found
   }
 
+  /**
+   * Returns graphical representation of the Genome
+   */
+  public void getGenome() {
+    for (Neuron neuron : neurons) {
+      System.out.println("Neuron #" + neuron.getNID());
+      for (Link link : links) {
+        if (link.getInputNeuron() == neuron.getNID()) {
+          System.out.println("- n_" + link.getInputNeuron() + "==> n_" + link.getOutputNeuron());
+        }
+      }
+    }
+  }
+
   public int getGID() {
     return this.gid;
   }

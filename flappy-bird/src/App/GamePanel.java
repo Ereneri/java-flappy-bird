@@ -16,13 +16,12 @@ public class GamePanel extends JPanel implements Runnable {
   // Game Objects and vars
   ArrayList<Pipe> pipes = new ArrayList<Pipe>();
   ArrayList<Ground> grounds = new ArrayList<Ground>();
-  // store all the actual players
   ArrayList<Player> players = new ArrayList<Player>();
-  // store only those that are alive
   int numberOfAlivePlayers = 0;
   private int highScore = 0;
   private int gameSpeed = 3;
   private int gameScore = 0;
+  private int populationSize = 10;
 
   // screen control
   double ratio;
@@ -79,9 +78,13 @@ public class GamePanel extends JPanel implements Runnable {
       grounds.add(new Ground(i, this));
     }
     // add players
-    for (int i = 0; i < 10; i++) {
-      players.add(new Player(this, i));
+    for (int i = 0; i < populationSize; i++) {
+      players.add(new Player(this, i)); // TODO need to map players to a individual...
     }
+    // initalize population here
+    Config cfg = new Config(3, 1, populationSize);
+    Population population = new Population(cfg);
+    System.out.println("Population created with " + population.getHighestGID() + " individuals");
     newGame();
   }
 
@@ -90,9 +93,6 @@ public class GamePanel extends JPanel implements Runnable {
    */
   public void startGameThread() {
     gameThread = new Thread(this);
-    // Init population
-    // Config c = new Config(4, 2, 100);
-    // Population pop = new Population(c);
 
     try {
       // waits for this current thread to die before beginning execution
@@ -142,6 +142,8 @@ public class GamePanel extends JPanel implements Runnable {
       if (numberOfAlivePlayers == 0) {
         gameState = DEAD;
       }
+      // get
+
 
       // Update each player
       for (Player player : players) {

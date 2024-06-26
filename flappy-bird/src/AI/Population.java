@@ -29,9 +29,14 @@ public class Population {
     this.cfg = c;
     this.numInputs = c.getNumInputs();
     this.numOutputs = c.getNumOutputs();
+    this.individuals = new ArrayList<>();
     for (int i = 0; i < c.getPopulationSize(); i++) {
       individuals.add(new Individual(newGenome(), 0.0));
     }
+  }
+
+  public int getHighestGID() {
+    return highestGID;
   }
 
   /**
