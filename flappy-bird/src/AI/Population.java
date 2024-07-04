@@ -67,7 +67,8 @@ public class Population {
       }
       newGeneration.add(offspring);
     }
-    // set new individuals as well as return it to our gamepanel
+    // set new individuals as well as return it to our gamePanel
+    System.out.println("New Population: " + newGeneration);
     this.individuals = newGeneration;
     return newGeneration;
   }
@@ -111,7 +112,7 @@ public class Population {
     // randomly pick one of the bias and activations
     double bias = (Math.random() % 1) == 0 ? a.getBias() : b.getBias();
     Activation activation = (Math.random() % 1) == 0 ? a.getActivation() : b.getActivation();
-    return new Neuron(neuronID, bias, activation);
+    return new Neuron(neuronID, bias, a.getType(), activation);
   }
 
   /**

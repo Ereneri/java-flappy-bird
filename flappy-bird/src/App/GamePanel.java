@@ -198,13 +198,6 @@ public class GamePanel extends JPanel implements Runnable {
         if (player.isAlive()) {
           // get inputs for
           assert targetPipe != null;
-          List<Double> inputs = getInputs(player, targetPipe);
-//          System.out.print("Data: ");
-//          for (Double d : inputs) {
-//            System.out.print(d + ",");
-//          }
-//          System.out.println();
-          // update player
           player.update();
           // should player jump
           if (player.getPlayersAIIndividual().compute(getInputs(player, targetPipe))) {
@@ -306,9 +299,11 @@ public class GamePanel extends JPanel implements Runnable {
    */
   public void newGame() {
     List<Individual> newIndividuals = population.getIndividuals();
+    System.out.println("Current Individuals " + newIndividuals);
     // if this isn't our first game then reproduce
     if (startTime != (long) -1.0) {
       // reproduce our population
+      System.out.println("Reproduce Population");
       newIndividuals = population.reproduce();
     }
 
@@ -319,6 +314,7 @@ public class GamePanel extends JPanel implements Runnable {
     numberOfAlivePlayers = players.size();
     for (int idx = 0; idx < players.size(); idx++) {
       players.get(idx).defaultValues();
+      System.out.println("Set player's Individual to" + newIndividuals.get(idx));
       players.get(idx).setPlayersAIIndividual(newIndividuals.get(idx));
     }
 

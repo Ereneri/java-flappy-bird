@@ -17,12 +17,14 @@ public class Individual {
    * @return True if activation is greater than .5
    */
   public boolean compute(List<Double> inputs) {
+    System.out.println("Inputs " + inputs);
     try {
       // get the output value and
       double res = genome.activate(inputs);
-//      System.out.println("OUTPUT: " + res);
+      System.out.println("OUTPUT: " + res);
       return res > 0.5;
     } catch (Exception e) {
+      System.err.println("Failed to Compute Activation " + e);
       return false;
     }
   }
@@ -43,8 +45,8 @@ public class Individual {
     this.fitness = newFitness;
   }
 
-  public double run() {
-    // should run a game of gamepanel
-    return 0.0;
+  @Override
+  public String toString() {
+    return "Individual-" + this.getGenome().getGID();
   }
 }
