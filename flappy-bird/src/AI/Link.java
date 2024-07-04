@@ -73,4 +73,9 @@ public class Link {
     return new int[]{inputID, outputID};
   }
 
+  @Override
+  public String toString() {
+    return "Link-" + this.inputID + " to " + this.outputID;
+  }
+
 }

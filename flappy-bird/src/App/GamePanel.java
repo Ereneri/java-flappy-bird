@@ -8,6 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -16,12 +17,16 @@ public class GamePanel extends JPanel implements Runnable {
   // Game Objects and vars
   ArrayList<Pipe> pipes = new ArrayList<Pipe>();
   ArrayList<Ground> grounds = new ArrayList<Ground>();
-  ArrayList<Player> players = new ArrayList<Player>();
   int numberOfAlivePlayers = 0;
   private int highScore = 0;
   private int gameSpeed = 3;
   private int gameScore = 0;
-  private int populationSize = 1;
+
+  // AI variables
+  ArrayList<Player> players = new ArrayList<Player>();
+  private int populationSize = 10;
+  private Population population;
+  private long startTime = (long) -1.0;
 
   // screen control
   double ratio;
@@ -77,14 +82,17 @@ public class GamePanel extends JPanel implements Runnable {
     for (int i = 0; i < screenWidth + ag.getGround().getWidth(); i += ag.getGround().getWidth()) {
       grounds.add(new Ground(i, this));
     }
-    // add players
-    for (int i = 0; i < populationSize; i++) {
-      players.add(new Player(this, i)); // TODO need to map players to a individual...
-    }
     // initalize population here
     Config cfg = new Config(3, 1, populationSize);
-    Population population = new Population(cfg);
+    this.population = new Population(cfg);
     System.out.println("Population created with " + population.getHighestGID() + " individuals");
+    // add players
+    List<Individual> populationIndividuals = population.getIndividuals();
+    for (int i = 0; i < populationSize; i++) {
+      players.add(new Player(this, i, populationIndividuals.get(i)));
+    }
+    // test first player
+    players.get(0).getPlayersAIIndividual().getGenome().printGenome();
     newGame();
   }
 
@@ -191,16 +199,16 @@ public class GamePanel extends JPanel implements Runnable {
           // get inputs for
           assert targetPipe != null;
           List<Double> inputs = getInputs(player, targetPipe);
-          System.out.print("Data: ");
-          for (Double d : inputs) {
-            System.out.print(d + ",");
-          }
-          System.out.println();
+//          System.out.print("Data: ");
+//          for (Double d : inputs) {
+//            System.out.print(d + ",");
+//          }
+//          System.out.println();
           // update player
           player.update();
           // should player jump
-          if (Math.random() < 0.10) {
-            player.jump(); // TODO make this call the AI NEAT shouldJump Function and pass in all inputs
+          if (player.getPlayersAIIndividual().compute(getInputs(player, targetPipe))) {
+            player.jump();
           }
           // check if player hits ground
           if (player.getY() >= screenHeight - ag.getGround().getHeight() - player.getHeight()) {
@@ -286,15 +294,34 @@ public class GamePanel extends JPanel implements Runnable {
     return delta;
   }
 
+  public int getPlayerMax(Player p1, Player p2) {
+    if (p1.getPlayersAIIndividual().getFitness() > p2.getPlayersAIIndividual().getFitness()) {
+      return 0;
+    }
+    return 1;
+  }
+
   /**
    * Resets Environment for new game
    */
   public void newGame() {
+    List<Individual> newIndividuals = population.getIndividuals();
+    // if this isn't our first game then reproduce
+    if (startTime != (long) -1.0) {
+      // reproduce our population
+      newIndividuals = population.reproduce();
+    }
+
+    // get start time
+    startTime = System.nanoTime();
+
     // Reset alive players when they all die
     numberOfAlivePlayers = players.size();
-    for (Player player : players) {
-      player.defaultValues();
+    for (int idx = 0; idx < players.size(); idx++) {
+      players.get(idx).defaultValues();
+      players.get(idx).setPlayersAIIndividual(newIndividuals.get(idx));
     }
+
     gameScore = 0;
     System.out.println("New Game");
     System.out.println("Players: " + players.size());
@@ -330,6 +357,10 @@ public class GamePanel extends JPanel implements Runnable {
   public void playerDied(Player p) {
     numberOfAlivePlayers -= 1;
     p.setAliveStatus(false);
+
+    // need to set the player's fitness here using timestamps for amount of time alive
+    double timeDelta = (double)(startTime - System.nanoTime());
+    p.getPlayersAIIndividual().setFitness(timeDelta);
 
     if (numberOfAlivePlayers == 0) {
       gameState = DEAD;

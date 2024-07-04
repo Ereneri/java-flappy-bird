@@ -11,7 +11,7 @@ public class Population {
   // basic population variabkes
   private List<Individual> individuals;
   private Config cfg;
-  private Mutation mutation;
+  private Mutation mutation = new Mutation();
 
   // agent variables
   private int numInputs;
@@ -39,11 +39,15 @@ public class Population {
     return highestGID;
   }
 
+  public List<Individual> getIndividuals() {
+    return individuals;
+  }
+
   /**
    * Helper function to reproduce the individuals for new generation
    * @return new Generation of individuals
    */
-  private List<Individual> reproduce() {
+  public List<Individual> reproduce() {
     // get old generation and sort by fitness
     individuals.sort((a, b) -> Double.compare(b.getFitness(), a.getFitness()));
     int cutoff = (int)(Math.ceil(cfg.getSurvivalThreshold() * individuals.size()));
@@ -63,6 +67,8 @@ public class Population {
       }
       newGeneration.add(offspring);
     }
+    // set new individuals as well as return it to our gamepanel
+    this.individuals = newGeneration;
     return newGeneration;
   }
 
@@ -88,6 +94,8 @@ public class Population {
         }
       }
     }
+    System.out.println("DEBUG NEURONS" + g.getNeurons());
+    System.out.println("DEBUG LINKS" + g.getLinks());
     return g;
   }
 

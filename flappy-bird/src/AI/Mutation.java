@@ -1,11 +1,13 @@
 package AI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Mutation {
 
+  /**
+   * No Arg constructor (ugh)
+   */
+  public Mutation() {}
 
   /* Mutation functions */
   
@@ -16,12 +18,12 @@ public class Mutation {
   public void mutate(Genome g) {
     // randomly select a mutation to perform
     double mutation = Math.random();
-    if (mutation < 0.25) {
+    if (mutation < 0.40) {
       mutateAddLink(g);
-    } else if (mutation < 0.5) {
-      mutateRemoveLink(g);
-    } else if (mutation < 0.75) {
+    } else if (mutation < 0.80) {
       mutateNewHiddenNeuron(g);
+    } else if (mutation < 0.90) {
+      mutateRemoveLink(g);
     } else {
       mutateRemoveHiddenNeuron(g);
     }
@@ -35,6 +37,8 @@ public class Mutation {
   private void mutateAddLink(Genome g) {
     int inputID = randomNeuron(g).getNID();
     int outputID = randomNeuron(g).getNID();
+    assert (inputID != outputID);
+
     // don't dupe links
     Link l = g.findLink(inputID, outputID);
     if (l != null) {
@@ -48,13 +52,14 @@ public class Mutation {
   }
 
   /**
-   * Removes the a random Link
+   * Removes a random Link
    * @param g Genome to mutate
    */
   private void mutateRemoveLink(Genome g) {
     // cant remove links that do not exist
     int size = g.getLinks().size();
     if (size == 0) {
+      System.err.println("Genome has no Links!");
       return;
     }
     // randomly selects one of the links to be removed
@@ -68,7 +73,10 @@ public class Mutation {
   private void mutateNewHiddenNeuron(Genome g) {
     // can't split links if they do not exist
     int size = g.getLinks().size();
-    if (size == 0) return;
+    if (size == 0) {
+      System.err.println("Genome has no Links!");
+      return;
+    }
 
     // get a random link and disable it
     Link linkToSplit = randomLink(g);
@@ -87,17 +95,25 @@ public class Mutation {
   }
 
   private void mutateRemoveHiddenNeuron(Genome g) {
-    if (g.getNeurons().size() == 0) {
+    if (g.getNeurons().isEmpty() || g.getLinks().isEmpty()) {
+      System.err.println("Genome has no Neurons or no Links");
       return;
     }
     // get a random neuron
     Neuron n = randomNeuron(g);
+    if (n == null || n.getType() == 3) {
+      System.err.println("Cannot remove null or non-hidden Neurons");
+      return;
+    }
     // delete the associated links
-    for (Link l : g.getLinks()) {
+    Iterator<Link> iterator = g.getLinks().iterator();
+    while (iterator.hasNext()) {
+      Link l = iterator.next();
       if (l.getInputNeuron() == n.getNID() || l.getOutputNeuron() == n.getNID()) {
-        g.removeLink(l);
+        iterator.remove();
       }
     }
+
     // remove the neuron
     g.removeNeuron(n);
   }
@@ -107,24 +123,30 @@ public class Mutation {
 
   /**
    * Helper Function to check if adding a new link would cause a cycle
-   * @param g Genome graph to be check
-   * @param inputID Input Id for link to be added
+   * @param g Genome graph to be checked
+   * @param inputID Input ID for link to be added
    * @param outputID output id for link to be added
    * @return Boolean value whether this new link would cause a cycle
    */
   private boolean wouldCreateCycle(Genome g, int inputID, int outputID) {
-    // create map of all the nodes and their children
+    // create map of all the nodes and their children -> key is input node and value is a list of output nodes
     HashMap<Integer, List<Integer>> childMap = new HashMap<Integer, List<Integer>>();
+    // initialize map with empty values
+    for (Neuron neuron :  g.getNeurons()) {
+      childMap.put(neuron.getNID(), new ArrayList<>());
+    }
+    // Create adj map with our new link
     for (Link l : g.getLinks()) {
       addLinkToMap(childMap, l);
     }
+    // add our new link to the map
     addLinkToMap(childMap, new Link(inputID, outputID));
 
     // Bulk of DFS cycle check for directed graph -> https://www.geeksforgeeks.org/detect-cycle-in-a-graph/
-    int length = g.getNeurons().size();
+    int numberOfNeurons = g.getNeurons().size();
     // store both on visited nodes and recursively visited nodes
-    boolean[] visited = new boolean[length];
-    boolean[] recStack = new boolean[length];
+    HashSet<Integer> visited = new HashSet<>();
+    HashSet<Integer> recStack = new HashSet<>();
 
     // loop over all neurons checking for cycles
     for (Neuron n : g.getNeurons()) {
@@ -141,21 +163,22 @@ public class Mutation {
    * @param map mapping of all the neurons from in to out
    * @return if there is a cycle
    */
-  private boolean isCycle(int i, boolean[] visited, boolean[] recStack, HashMap<Integer, List<Integer>> map) {
+  private boolean isCycle(int i, HashSet<Integer> visited, HashSet<Integer> recStack, HashMap<Integer, List<Integer>> map) {
     // Checks if we have seen the same node already in the rec stack or have marked it
-    if (recStack[i]) return true;
-    if (visited[i]) return false;
+    if (recStack.contains(i)) return true;
+    if (visited.contains(i)) return false;
 
-    visited[i] = true;
-    recStack[i] = true;
+    visited.add(i);
+    recStack.add(i);
 
     // loop over all children of the current node
-    for (Integer output : map.get(i)) {
-      // check neurons child recurively
+    List<Integer> outID = map.get(i);
+    for (Integer output : outID) {
+      // check neurons child recursively
       if (isCycle(output, visited, recStack, map)) return true;
     }
     // if we haven't returned yet means there wasn't a cycle for this neuron, thus reset recStack to false
-    recStack[i] = false;
+    recStack.remove(i);
     return false;
   }
 
@@ -167,8 +190,8 @@ public class Mutation {
    * @return Random Neuron
    */
   private Neuron randomNeuron(Genome g) {
-    int randomIDX = (int)(Math.random() * g.getNeurons().size());
-    return g.findNeuron(randomIDX);
+    int randomIDX = (int)(Math.random() * (g.getNeurons().size() - 1));
+    return g.getNeurons().get(randomIDX);
   }
 
   /**

@@ -11,14 +11,24 @@ public class Individual {
     this.fitness = fitness;
   }
 
+  /**
+   * Send input's into Genome and activate it
+   * @param inputs List of data points for Genome
+   * @return True if activation is greater than .5
+   */
   public boolean compute(List<Double> inputs) {
     try {
       // get the output value and
-      double res = genome.computeOutput(inputs);
+      double res = genome.activate(inputs);
+//      System.out.println("OUTPUT: " + res);
       return res > 0.5;
     } catch (Exception e) {
       return false;
     }
+  }
+
+  public void setGenome(Genome genome) {
+    this.genome = genome;
   }
 
   public Genome getGenome() {

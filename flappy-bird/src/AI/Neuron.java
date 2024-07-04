@@ -58,4 +58,9 @@ public class Neuron {
   public void setActivationValue(double value) {
     this.activation.setActivationValue(value);
   }
+
+  @Override
+  public String toString() {
+    return "Neuron-" + this.nid;
+  }
 }

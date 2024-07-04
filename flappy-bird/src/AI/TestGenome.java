@@ -1,6 +1,5 @@
 package AI;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class TestGenome {
     // Compute the output
     double output;
     try {
-      output = genome.computeOutput(inputValues);
+      output = genome.activate(inputValues);
     } catch (Exception e) {
       return false;
     }
@@ -110,7 +109,7 @@ public class TestGenome {
     // Compute the output
     double output;
     try {
-      output = genome.computeOutput(inputValues);
+      output = genome.activate(inputValues);
     } catch (Exception e) {
       return false;
     }

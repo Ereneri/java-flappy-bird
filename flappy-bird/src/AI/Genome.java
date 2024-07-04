@@ -24,7 +24,6 @@ public class Genome {
     this.gid = gid;
     this.numInputs = numInputs;
     this.numOutputs = numOutputs;
-    Activation activation = new Activation();
     this.nextNID = 0;
     this.numberOfNeurons = 0;
     this.numberOfLinks = 0;
@@ -52,10 +51,8 @@ public class Genome {
    * @return The output of the neuron
    * @throws Exception
    */
-  public double computeOutput(List<Double> inputValues) throws Exception {
-    if (inputValues.size() != numInputs) {
-
-    }
+  public double activate(List<Double> inputValues) throws Exception {
+    assert(inputValues.size() == numInputs);
 
     Map<Integer, Double> neuronValues = new HashMap<>();
 
@@ -120,12 +117,12 @@ public class Genome {
   /**
    * Returns graphical representation of the Genome
    */
-  public void getGenome() {
+  public void printGenome() {
     for (Neuron neuron : neurons) {
-      System.out.println("Neuron #" + neuron.getNID());
+      System.out.println("Neuron #" + neuron.getNID() + " (" + neuron.getType() + ") @ [" + neuron.getActivationValue() + "]");
       for (Link link : links) {
         if (link.getInputNeuron() == neuron.getNID()) {
-          System.out.println("- n_" + link.getInputNeuron() + "==> n_" + link.getOutputNeuron());
+          System.out.println("N" + link.getInputNeuron() + " =[" + link.getWeight() + "=> N" + link.getOutputNeuron());
         }
       }
     }

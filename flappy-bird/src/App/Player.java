@@ -1,5 +1,7 @@
 package App;
 
+import AI.Individual;
+
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -32,6 +34,7 @@ public class Player {
 
   // misc vars
   long lastTime = System.currentTimeMillis();
+  Individual playersAIIndividual;
 
   /** 
    * Player Constructor
@@ -51,6 +54,35 @@ public class Player {
     this.score = 0;
     this.currentBirdImage = bird[0];
     this.c = new Collision((int)x+4, (int)y+4, width, height);
+  }
+
+  /**
+   * Player Constructor
+   */
+  public Player(GamePanel gp, int playerID, Individual playersAIIndividual) {
+    this.playerID = playerID;
+    this.gp = gp;
+    this.bird = gp.ag.getBird();
+    // set players pos
+    this.x = gp.screenWidth / 3;
+    this.y = gp.screenHeight / 2;
+    // set player dims
+    this.width = bird[0].getWidth() - 5;
+    this.height = bird[0].getHeight() - 5;
+    // misc
+    this.isAlive = true;
+    this.score = 0;
+    this.currentBirdImage = bird[0];
+    this.c = new Collision((int)x+4, (int)y+4, width, height);
+    this.playersAIIndividual = playersAIIndividual;
+  }
+
+  public void setPlayersAIIndividual(Individual aiIndividual) {
+    this.playersAIIndividual = aiIndividual;
+  }
+
+  public Individual getPlayersAIIndividual() {
+    return playersAIIndividual;
   }
 
   /**
