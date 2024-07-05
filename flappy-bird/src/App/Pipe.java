@@ -69,11 +69,19 @@ public class Pipe {
   }
 
   /**
-   * Checks if whole width of pipes are off screen
+   * Checks if whole width of pipes are off-screen
    * @return boolean value if off screen
    */
   public boolean isOffScreen() {
-    return (x + pipeWidth) < 0 && (x + pipeWidth) < 0;
+    return (x + pipeWidth) < 0;
+  }
+
+  /**
+   * Checks if pipe has been crossed
+   * @return boolean of has been crossed
+   */
+  public boolean hasBeenCrossed() {
+    return !hasBeenCrossed;
   }
 
   /**
@@ -99,19 +107,11 @@ public class Pipe {
   }
 
   /**
-   * Checks if pipe has been crossed
-   * @return boolean of has been crossed
-   */
-  public boolean hasBeenCrossed() {
-    return !hasBeenCrossed;
-  }
-
-  /**
    * Gets both Y positions of the top and bottom pipes
    * @return Map of "top" and "bottom"
    */
   public Map<String, Integer> getY() {
-    return Map.of("bottom", y1, "top", y2);
+    return Map.of("bottom", y1, "top", y2 - pipeHeight);
   }
 
   /**
@@ -121,4 +121,12 @@ public class Pipe {
   public int getX() {
     return x;
   }
+
+  public Map<String, Integer> getMiddleOfOpening() {
+    int middleX = x + (pipeWidth / 2);
+    // take bottom pipe y and add half the opening size
+    int middleY = y1 - (pipeOpeningSize / 2);
+    return Map.of("x", middleX, "y", middleY);
+  }
+
 }

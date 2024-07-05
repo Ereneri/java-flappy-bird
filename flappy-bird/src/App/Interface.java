@@ -34,10 +34,10 @@ public class Interface {
   private void drawDead() {
     BufferedImage gameOver = gp.ag.getGameOver();
     BufferedImage hs = gp.ag.getHighScore();
-    // Draw Gameover
-    g2.drawImage(gameOver,  (int)((gp.screenWidth - gameOver.getWidth()) / 2),
-                            (int)((gp.screenHeight - gameOver.getHeight()) / 3), null);
-    // Draw background highscore
+    // Draw Game over
+    g2.drawImage(gameOver, (gp.screenWidth - gameOver.getWidth()) / 2,
+                           (gp.screenHeight - gameOver.getHeight()) / 3, null);
+    // Draw background high score
     g2.drawImage(hs,  (gp.screenWidth - hs.getWidth()) / 2,
                       (gp.screenHeight/3) + gameOver.getHeight(), null);
 
@@ -79,8 +79,8 @@ public class Interface {
     g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
     // draw welcome banner
     BufferedImage banner = gp.ag.getBanner();
-    g2.drawImage(banner,  (int)((gp.screenWidth - banner.getWidth()) / 2),
-                          (int)((gp.screenHeight - banner.getHeight()) / 3), null);
+    g2.drawImage(banner,  ((gp.screenWidth - banner.getWidth()) / 2),
+                          ((gp.screenHeight - banner.getHeight()) / 3), null);
   }
 
   /**

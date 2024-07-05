@@ -15,9 +15,6 @@ public class Genome {
 
   // Misc Variables
   private int nextNID;
-  private int numberOfNeurons;
-  private int numberOfLinks;
-  private int numberOfHidden;
 
   public Genome(int gid, int numInputs, int numOutputs) {
     // set vars
@@ -25,9 +22,6 @@ public class Genome {
     this.numInputs = numInputs;
     this.numOutputs = numOutputs;
     this.nextNID = 0;
-    this.numberOfNeurons = 0;
-    this.numberOfLinks = 0;
-    this.numberOfHidden = 0;
     this.neurons = new ArrayList<>();
     this.links = new ArrayList<>();
   }
@@ -39,14 +33,11 @@ public class Genome {
     this.neurons = g.getNeurons();
     this.links = g.getLinks();
     this.nextNID = 0;
-    this.numberOfNeurons = 0;
-    this.numberOfLinks = 0;
-    this.numberOfHidden = 0;
   }
 
   /**
    * Compute the output of the neural network given the inputs
-   * 
+   *
    * @param inputValues the input data for the NN
    * @return The output of the neuron
    * @throws Exception
@@ -60,8 +51,9 @@ public class Genome {
     for (int i = 0; i < numInputs; i++) {
       Neuron neuron = neurons.get(i);
       if (neuron.getType() == Population.INPUT) {
-        neuron.setActivationValue(inputValues.get(i));
-        neuronValues.put(neuron.getNID(), inputValues.get(i));
+        double input = inputValues.get(i);
+        neuron.setActivationValue(input);
+        neuronValues.put(neuron.getNID(), input);
       }
     }
 
@@ -86,7 +78,6 @@ public class Genome {
     // Compute activation for hidden and output neurons
     for (Neuron neuron : neurons) {
       if (neuron.getType() == Population.HIDDEN || neuron.getType() == Population.OUTPUT) {
-
         // Calculate the weighted sum of input activations
         double sum = 0.0;
         for (Link link : links) {
@@ -115,14 +106,15 @@ public class Genome {
   }
 
   /**
-   * Returns graphical representation of the Genome
+   * DEBUG FUNCTION - Returns graphical representation of the Genome
    */
   public void printGenome() {
     for (Neuron neuron : neurons) {
-      System.out.println("Neuron #" + neuron.getNID() + " (" + neuron.getType() + ") @ [" + neuron.getActivationValue() + "]");
+      System.out.println("Neuron #" + neuron.getNID() + " (" + neuron.getTypeName() + ") @ [" + neuron.getActivationValue() + "]");
       for (Link link : links) {
         if (link.getInputNeuron() == neuron.getNID()) {
-          System.out.println("N" + link.getInputNeuron() + " =[" + link.getWeight() + "=> N" + link.getOutputNeuron());
+          if (!link.getIsEnabled()) System.out.print("DISABLED-- ");
+          System.out.println("Link: NID" + link.getInputNeuron() + " =[" + link.getWeight() + "=> NID" + link.getOutputNeuron());
         }
       }
     }
@@ -130,10 +122,6 @@ public class Genome {
 
   public int getGID() {
     return this.gid;
-  }
-
-  public int getNumberOfHidden() {
-    return this.numberOfHidden;
   }
 
   public int getNumInputs() {
@@ -148,22 +136,22 @@ public class Genome {
     return this.neurons;
   }
 
-  public void removeNeuron(Neuron removedNeuron) {
-    neurons.remove(removedNeuron);
-    numberOfNeurons--;
-  }
-
   public List<Link> getLinks() {
     return this.links;
   }
 
+  /**
+   * Get Next Neuron ID that would be used
+   *
+   * @return int of next Neuron ID
+   */
   public int getNextNID() {
     return nextNID;
   }
 
   /**
    * Finds the matching neuron for the given neuron id
-   * 
+   *
    * @param id neuron id to be found
    * @return matching neuron or null if not found
    */
@@ -175,9 +163,10 @@ public class Genome {
     return null;
   }
 
+
   /**
    * Find the matching links for the given link ids
-   * 
+   *
    * @param inputID  link input id to be found
    * @param outputID link output id to be found
    * @return matching link or null if not found
@@ -192,47 +181,40 @@ public class Genome {
   }
 
   /**
-   * Add given Neuron to genome's Network
-   * 
-   * @param newNeuron
+   * Remove given Neuron from genome's Network
+   *
+   * @param removedNeuron Neuron to be removed
    */
-  public void addNeuron(Neuron newNeuron) {
-    neurons.add(newNeuron);
-    numberOfNeurons++;
-    nextNID++;
+  public void removeNeuron(Neuron removedNeuron) {
+    neurons.remove(removedNeuron);
   }
 
   /**
-   * Add a new neuron to genome's Network
-   * 
-   * @apiNote bias is 1.0 by default and base activiation
+   * Add given Neuron to genome's Network
+   *
+   * @param newNeuron to be added
    */
-  public void addNeuron() {
-    neurons.add(new Neuron(nextNID++, 1.0, null));
-    numberOfNeurons++;
-    nextNID++;
+  public void addNeuron(Neuron newNeuron) {
+    neurons.add(newNeuron);
+    nextNID++; // means every NID is unique
   }
 
-  public void addLinks(Link newLink) {
+  /**
+   * Add given Link to genome's Network
+   *
+   * @param newLink Link to be added
+   */
+  public void addLink(Link newLink) {
     links.add(newLink);
-    numberOfLinks++;
   }
 
-  public void removeLink(Link removedLink) {
-    links.remove(removedLink);
-    numberOfLinks--;
-  }
-
+  /**
+   * Remove Link from genome's Network
+   *
+   * @param index Index of link to be removed
+   */
   public void removeLink(int index) {
     links.remove(index);
-    numberOfLinks--;
   }
 
-  public int getNumberOfNeurons() {
-    return numberOfNeurons;
-  }
-
-  public int getNumberOfLinks() {
-    return numberOfLinks;
-  }
 }

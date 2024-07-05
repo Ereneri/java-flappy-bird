@@ -225,4 +225,8 @@ public class Player {
   public double getVelocity() {
     return this.vertSpeed;
   }
+
+  public double getTerminalVelocity() {
+    return terminalVelo;
+  }
 }

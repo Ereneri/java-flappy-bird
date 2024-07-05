@@ -18,15 +18,27 @@ public class Mutation {
   public void mutate(Genome g) {
     // randomly select a mutation to perform
     double mutation = Math.random();
-    if (mutation < 0.40) {
+    if (mutation < .80) {
+      mutateWeights(g);
+    } else if (mutation < .85) {
       mutateAddLink(g);
-    } else if (mutation < 0.80) {
+    } else if (mutation < .90) {
       mutateNewHiddenNeuron(g);
-    } else if (mutation < 0.90) {
+    } else if (mutation < .95) {
       mutateRemoveLink(g);
     } else {
       mutateRemoveHiddenNeuron(g);
     }
+  }
+
+  /**
+   * Gives a random link a new weight
+   * @param g Genome to mutate
+   */
+  private void mutateWeights(Genome g) {
+    // find a random Link
+    Link targetLink = randomLink(g);
+    targetLink.newWeight();
   }
 
   /**
@@ -48,7 +60,7 @@ public class Mutation {
     if (wouldCreateCycle(g, inputID, outputID)) return;
     // if no cycle is created we can add it
     Link newLink = new Link(inputID, outputID);
-    g.addLinks(newLink);
+    g.addLink(newLink);
   }
 
   /**
@@ -58,11 +70,11 @@ public class Mutation {
   private void mutateRemoveLink(Genome g) {
     // cant remove links that do not exist
     int size = g.getLinks().size();
-    if (size == 0) {
-      System.err.println("Genome has no Links!");
+    if (size <= 1) {
+      System.err.println("Genome cannot remove Links!");
       return;
     }
-    // randomly selects one of the links to be removed
+    // randomly selects one of the links to be removedi
     g.removeLink((int)(Math.random() * size));
   }
 
@@ -73,8 +85,8 @@ public class Mutation {
   private void mutateNewHiddenNeuron(Genome g) {
     // can't split links if they do not exist
     int size = g.getLinks().size();
-    if (size == 0) {
-      System.err.println("Genome has no Links!");
+    if (size <= 0) {
+      System.err.println("Genome cannot split Links!");
       return;
     }
 
@@ -90,8 +102,8 @@ public class Mutation {
     int out = linkToSplit.getOutputNeuron();
     double weight = linkToSplit.getWeight();
     // create new links
-    g.addLinks(new Link(in, newNeuron.getNID(), 1.0, true));
-    g.addLinks(new Link(newNeuron.getNID(), out, weight, true));
+    g.addLink(new Link(in, newNeuron.getNID(), 1.0, true));
+    g.addLink(new Link(newNeuron.getNID(), out, weight, true));
   }
 
   private void mutateRemoveHiddenNeuron(Genome g) {
@@ -185,9 +197,9 @@ public class Mutation {
   /* RANDOM HELPERS */
 
   /**
-   * Selects a random neuron from Genome
+   * Selects a random neuron from Genome, if not valid will return Null
    * @param g Genome to select from
-   * @return Random Neuron
+   * @return Random Neuron or NULL
    */
   private Neuron randomNeuron(Genome g) {
     int randomIDX = (int)(Math.random() * (g.getNeurons().size() - 1));

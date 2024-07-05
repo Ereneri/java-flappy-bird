@@ -1,12 +1,6 @@
 package AI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-
 public class Activation {
-  // activation curve such as sigmoid or smth
   private double activationValue;
 
   /**
@@ -14,18 +8,23 @@ public class Activation {
    */
   public Activation() {
     this.activationValue = Math.random();
-//    System.out.println("Activation of " + activationValue);
+  }
+
+  /**
+   * Take input for Activation value, used for output nodes
+   * @param activationValue Activation value to be set
+   */
+  public Activation(double activationValue) {
+    this.activationValue = activationValue;
   }
 
   /**
    * Return activation Value of Node 
-   * @return the activiation value
+   * @return the activation value
    */
   public double getActivationValue() {
     return this.activationValue;
   }
-
-  /* Activation Function -> Sigmoid */
 
   /**
    * Sigmoid Activation Function
@@ -38,7 +37,7 @@ public class Activation {
 
   /**
    * Set Activation Value of Node
-   * @param value
+   * @param value Activation value to be set
    */
   public void setActivationValue(double value) {
     this.activationValue = value;

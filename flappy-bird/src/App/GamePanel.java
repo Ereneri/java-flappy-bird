@@ -8,7 +8,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -24,9 +23,13 @@ public class GamePanel extends JPanel implements Runnable {
 
   // AI variables
   ArrayList<Player> players = new ArrayList<Player>();
-  private final int populationSize = 50;
+  private final int populationSize = 100;
+  private final int numberOfInputs = 5;
   private Population population;
   private long startTime = (long) -1.0;
+  private Pipe targetPipe = null;
+  private final int numberOfGenerations = 100;
+  private int currentGeneration = 0;
 
   // screen control
   double ratio;
@@ -58,8 +61,8 @@ public class GamePanel extends JPanel implements Runnable {
   /**
    * Used by App/main as main game panel (JPanel)
    * 
-   * @param screenWidth
-   * @param screenHeight
+   * @param screenWidth Given screen width from App
+   * @param screenHeight Given screen height from App
    */
   public GamePanel(int screenWidth, int screenHeight) {
     // set screen vars
@@ -77,22 +80,22 @@ public class GamePanel extends JPanel implements Runnable {
     this.setDoubleBuffered(true);
     this.setFocusable(true);
     this.setLayout(null);
+
     // setup globals as needed
     this.addKeyListener(keyH);
     for (int i = 0; i < screenWidth + ag.getGround().getWidth(); i += ag.getGround().getWidth()) {
       grounds.add(new Ground(i, this));
     }
+
     // initialize population here
-    Config cfg = new Config(5, 1, populationSize);
+    Config cfg = new Config(numberOfInputs, 1, populationSize);
     this.population = new Population(cfg);
-    System.out.println("Population created with " + population.getHighestGID() + " individuals");
+
     // add players
     List<Individual> populationIndividuals = population.getIndividuals();
     for (int i = 0; i < populationSize; i++) {
       players.add(new Player(this, i, populationIndividuals.get(i)));
     }
-    // test first player
-    players.get(0).getPlayersAIIndividual().getGenome().printGenome();
     newGame();
   }
 
@@ -148,98 +151,19 @@ public class GamePanel extends JPanel implements Runnable {
     if (gameState == PLAYING) {
       // check if player died
       if (numberOfAlivePlayers == 0) {
-        System.out.println("All Players Died, new game starting...");
-        newGame();
         gameState = PLAYING;
+        highScore = Math.max(highScore, gameScore);
+        newGame();
       } else {
         // first pipe in array that hasn't been crossed yet
-        Pipe targetPipe = null;
         targetPipe = updatePipes(targetPipe);
 
-        // Update each player
-        for (Player player : players) {
-          if (player.isAlive()) {
-            // get inputs for
-            assert targetPipe != null;
-            player.update();
-            // should player jump
-            if (player.getPlayersAIIndividual().compute(getInputs(player, targetPipe))) {
-              player.jump();
-            }
-            // check if player hits ground
-            if (player.getY() >= screenHeight - ag.getGround().getHeight() - player.getHeight()) {
-              playerDied(player);
-            }
-          }
-        }
+        updatePlayer();
 
         // update ground
         updateGround();
       }
-
     }
-
-  }
-
-  private void updateGround() {
-    offScreen = false;
-    for (int gidx = 0; gidx < grounds.size(); gidx++) {
-      Ground ground = grounds.get(gidx);
-      ground.update(gameSpeed);
-      // trigger bool so we can remove first element from list
-      if (ground.isOffScreen()) {
-        offScreen = true;
-      }
-    }
-
-    // remove the first element from the list and add a new tile
-    if (offScreen) {
-      grounds.remove(0);
-      grounds.add(new Ground(grounds.get(grounds.size() - 1).getPos(), this));
-    }
-  }
-
-  private Pipe updatePipes(Pipe targetPipe) {
-    offScreen = false;
-    for (int pidx = 0; pidx < pipes.size(); pidx++) {
-      Pipe pipe = pipes.get(pidx);
-      pipe.update(gameSpeed);
-
-      // set out target
-      if (targetPipe == null && pipe.hasBeenCrossed()) {
-        targetPipe = pipe;
-      }
-
-      // delete old pipes if x is < 0
-      if (pipe.isOffScreen()) {
-        offScreen = true;
-      }
-
-      // Check if this pipe is pass our current bird y
-      if ((screenWidth / 3) > pipe.getHorizontalPositon() && pipe.hasBeenCrossed()) {
-        // update score here ideally
-        gameScore += 1;
-        pipe.crossed();
-      }
-
-      for (Player player : players) {
-        // only update players that are alive
-        if (player.isAlive()) {
-          // check if pipes touch player
-          if (pipe.getCollisions().get("top").touches(player.getCollision()) ||
-                  pipe.getCollisions().get("bottom").touches(player.getCollision())) {
-            playerDied(player);
-          }
-        }
-      }
-    }
-    // delete pipes off screen
-    if (offScreen) {
-      pipes.remove(0);
-      pipes.add(createPipe((pipes.get(pipes.size() - 1)).getHorizontalPositon() + screenWidth / 3));
-    }
-    return targetPipe;
-
   }
 
   /**
@@ -283,6 +207,19 @@ public class GamePanel extends JPanel implements Runnable {
       xPos += ag.getNumbers(scoreNum).getWidth();
     }
 
+    if (targetPipe != null) {
+      for (Player player : players) {
+        if (player.isAlive()) {
+          g2.setColor(new Color((player.playerID)));
+          g2.drawLine((int)player.getX(), (int)player.getY(), targetPipe.getMiddleOfOpening().get("x"), targetPipe.getMiddleOfOpening().get("y"));
+        }
+      }
+    }
+
+    // draw overlay on bottom for current generation
+    g2.drawString("Generation " + currentGeneration + "/" + numberOfGenerations, 20, screenHeight - (ag.getGround().getHeight() / 2));
+    g2.drawString("Agents Alive " + numberOfAlivePlayers + "/" + populationSize, 20, screenHeight - (ag.getGround().getHeight() / 3));
+
     // Draw Correct UI
     if (gameState != PLAYING) {
       ui.setState(gameState);
@@ -292,7 +229,7 @@ public class GamePanel extends JPanel implements Runnable {
 
   /**
    * Get Time delta from gameThread
-   * 
+   *
    * @return nanosecond time delta from last frame
    */
   public double getDelta() {
@@ -303,41 +240,47 @@ public class GamePanel extends JPanel implements Runnable {
    * Resets Environment for new game
    */
   public void newGame() {
+    // increment generation and check if we are done
+    if (currentGeneration == numberOfGenerations) {
+      gameState = DEAD;
+      // print out all the individuals and their genomes
+      for (Player player : players) {
+        player.getPlayersAIIndividual().getGenome().printGenome();
+      }
+      return;
+    }
+    currentGeneration += 1;
+
     List<Individual> newIndividuals = population.getIndividuals();
-    System.out.println("Current Individuals " + newIndividuals);
     // if this isn't our first game then reproduce
     if (startTime != (long) -1.0) {
       // reproduce our population
-      System.out.println("Reproduce Population");
       newIndividuals = population.reproduce();
     }
 
     // get start time
-    startTime = System.nanoTime();
+    startTime = System.currentTimeMillis();
 
     // Reset alive players when they all die
     numberOfAlivePlayers = players.size();
     for (int idx = 0; idx < players.size(); idx++) {
       players.get(idx).defaultValues();
-      System.out.println("Set player's Individual to" + newIndividuals.get(idx));
       players.get(idx).setPlayersAIIndividual(newIndividuals.get(idx));
     }
 
     gameScore = 0;
-    System.out.println("New Game");
-    System.out.println("Players: " + players.size());
-    System.out.println("Alive Players: " + numberOfAlivePlayers);
 
     // Reset Pipes
     pipes.clear();
     for (int i = 0; i < 4; i++) {
       pipes.add(createPipe((i * (screenWidth / 2)) + screenWidth));
     }
+    targetPipe = pipes.get(0);
   }
 
   /**
    * Create a new pipe at given x cord, y is random
-   * 
+   *
    * @param x horizontal positon of pipe
    * @return
    */
@@ -348,7 +291,7 @@ public class GamePanel extends JPanel implements Runnable {
 
   /**
    * Gets the current highest score
-   * 
+   *
    * @return highest score
    */
   public int getHighScore() {
@@ -359,13 +302,11 @@ public class GamePanel extends JPanel implements Runnable {
     numberOfAlivePlayers -= 1;
     p.setAliveStatus(false);
 
-    // need to set the player's fitness here using timestamps for amount of time alive
-    double timeDelta = (double)(startTime - System.nanoTime());
-    p.getPlayersAIIndividual().setFitness(timeDelta);
-
-    if (numberOfAlivePlayers == 0) {
-      gameState = DEAD;
-    }
+    // need to set the player's fitness here using timestamps for number of pipes crossed
+    double timeAlive = System.currentTimeMillis() - startTime;
+    int pipesCrossed = p.getScore() + 1; // prevent zeroing everything out
+    double fitness = (pipesCrossed * 100) * (timeAlive * 50);
+    p.getPlayersAIIndividual().updateFitness(-fitness);
   }
 
   public int getGameScore() {
@@ -375,28 +316,135 @@ public class GamePanel extends JPanel implements Runnable {
   /**
    * Get all the input data for NN
    * @param player Player object to be used to get distances
-   * @param pipe Nearest Pipe that hasn't been crossed
    * @return List of doubles to be passed to NN
    */
-  private List<Double> getInputs(Player player, Pipe pipe) {
+  private List<Double> getInputs(Player player) {
     List<Double> ans = new ArrayList<>();
 
     double birdsVertical = player.getY();
-    double birdsHorizontal = player.getX();
-    double topPipe = (double)pipe.getY().get("top");
-    double bottomPipe = (double)pipe.getY().get("bottom");
-    double distanceToPipes = (double)pipe.getHorizontalPositon();
+    double topPipe = (double)targetPipe.getY().get("top");
+    double bottomPipe = (double)targetPipe.getY().get("bottom");
 
-    // add player's y positon
-    ans.add(birdsVertical);
-    // add player velo
-    ans.add(player.getVelocity());
+    // add player velocity
+    ans.add(player.getVelocity() / player.getTerminalVelocity());
     // add delta to top pipe (y)
-    ans.add(topPipe - birdsVertical);
+    ans.add(((topPipe - birdsVertical) - screenHeight) / screenHeight);
     // add delta to bottom pipe (y)
-    ans.add(bottomPipe - birdsVertical);
-    // add distance to pipes (x)
-    ans.add(distanceToPipes - birdsHorizontal);
+    ans.add((birdsVertical - bottomPipe));
+    // distance to pipe opening
+    ans.add((getDistanceToPipeOpening(player)));
+    // get distance to pipe
+    ans.add((targetPipe.getX() - player.getX()) / screenWidth);
     return ans;
   }
+
+  /**
+   * Used to get distance to pipe opening, used as fitness
+   * @param player player to be scored
+   * @return double of distance to pipe, lower is better
+   */
+  private double getDistanceToPipeOpening(Player player) {
+    double deltaX = targetPipe.getMiddleOfOpening().get("x") - player.getX();
+    double deltaY = targetPipe.getMiddleOfOpening().get("y") - player.getY();
+    if (Math.round(Math.sqrt(deltaX * deltaX + deltaY * deltaY)) <= 0) {
+      System.err.println("dX: " + deltaX + " dY: " + deltaY + " == " + Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+    }
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  }
+
+  private void updateGround() {
+    offScreen = false;
+    for (int gidx = 0; gidx < grounds.size(); gidx++) {
+      Ground ground = grounds.get(gidx);
+      ground.update(gameSpeed);
+      // trigger bool so we can remove first element from list
+      if (ground.isOffScreen()) {
+        offScreen = true;
+      }
+    }
+
+    // remove the first element from the list and add a new tile
+    if (offScreen) {
+      grounds.remove(0);
+      grounds.add(new Ground(grounds.get(grounds.size() - 1).getPos(), this));
+    }
+  }
+
+  /**
+   * Helper Function for Update()
+   * @param targetPipe starting targetPipe
+   * @return new or same targetPipe
+   */
+  private Pipe updatePipes(Pipe targetPipe) {
+    offScreen = false;
+    // Check if this pipe is pass our current bird y
+    if ((screenWidth / 3) > targetPipe.getHorizontalPositon()) {
+      gameScore += 1;
+      int targetIdx = pipes.indexOf(targetPipe) + 1;
+      targetPipe = pipes.get(targetIdx);
+    }
+
+    for (int pidx = 0; pidx < pipes.size(); pidx++) {
+      Pipe pipe = pipes.get(pidx);
+      pipe.update(gameSpeed);
+
+      if ((screenWidth / 3) > pipe.getHorizontalPositon()) {
+        pipe.crossed();
+      }
+
+      // delete old pipes if x is < 0
+      if (pipe.isOffScreen()) {
+        offScreen = true;
+      }
+
+      for (Player player : players) {
+        // only update players that are alive
+        if (player.isAlive()) {
+          // check if pipes touch player
+          if (pipe.getCollisions().get("top").touches(player.getCollision()) ||
+                  pipe.getCollisions().get("bottom").touches(player.getCollision())) {
+            playerDied(player);
+          }
+          // check if we have passed a pipe
+          if (player.getX() > pipe.getHorizontalPositon() && pipe.hasBeenCrossed()) {
+            player.incrementScore();
+          }
+        }
+      }
+    }
+    // delete pipes off screen
+    if (offScreen) {
+      pipes.remove(0);
+      pipes.add(createPipe((pipes.get(pipes.size() - 1)).getHorizontalPositon() + screenWidth / 3));
+    }
+    return targetPipe;
+  }
+
+  /**
+   * Helper Function for Update()
+   */
+  private void updatePlayer() {
+    // Update each player
+    for (Player player : players) {
+      if (player.isAlive()) {
+        // get inputs for
+        assert targetPipe != null;
+        player.update();
+        // should player jump
+        if (player.getPlayersAIIndividual().compute(getInputs(player))) {
+          player.jump();
+        }
+        // check if player hits ground
+        if (player.getY() >= screenHeight - ag.getGround().getHeight() - player.getHeight()) {
+          playerDied(player);
+          player.getPlayersAIIndividual().setFitness(Integer.MAX_VALUE);
+        }
+        // if hitting ceiling
+        if (player.getY() == 0) {
+          player.getPlayersAIIndividual().setFitness(Integer.MAX_VALUE);
+        }
+      }
+    }
+  }
+
 }

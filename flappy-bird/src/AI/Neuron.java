@@ -37,16 +37,19 @@ public class Neuron {
 
   /**
    * Get's the type of the neuron
-   * @return 0-Input, 1-Output, 3-Hidden
+   * @return 0-Input, 1-Output, 3-Hidden (ref Population)
    */
   public int getType() {
-    return this.type;
+    return this.type; // TODO should honestly be a enum
   }
 
-  /**
-   * Gets the activation object of this neuron
-   * @return Activation object
-   */
+  public String getTypeName() {
+    if (type == Population.HIDDEN) return "Hidden";
+    if (type == Population.OUTPUT) return "Output";
+    if (type == Population.INPUT) return "Input";
+    return "Invalid Type";
+  }
+
   public Activation getActivation() {
     return this.activation;
   }
@@ -60,6 +63,9 @@ public class Neuron {
   }
 
   @Override
+  /**
+   * Override toString to return the Neuron's ID
+   */
   public String toString() {
     return "Neuron-" + this.nid;
   }

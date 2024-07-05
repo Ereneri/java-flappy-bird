@@ -12,7 +12,7 @@ public class Link {
    * @param inputID id of the input neuron
    * @param outputID id of the output neuron
    * @param weight weight of the link
-   * @param isEnabled is used in NN
+   * @param isEnabled boolean of whether this link is being used
    */
   public Link(int inputID, int outputID, double weight, boolean isEnabled) {
     this.inputID = inputID;
@@ -29,16 +29,8 @@ public class Link {
   public Link(int inputID, int outputID) {
     this.inputID = inputID;
     this.outputID = outputID;
-    this.weight = 1.0;
+    this.weight = Math.random() * 2 - 1;
     this.isEnabled = true;
-  }
-
-  /**
-   * Updates the link's weight
-   * @param newWeight
-   */
-  public void updateWeight(double newWeight) {
-    this.weight = newWeight;
   }
 
   public double getWeight() {
@@ -74,8 +66,26 @@ public class Link {
   }
 
   @Override
+  /**
+   * Override toString to return the Link's input and output IDs
+   */
   public String toString() {
     return "Link-" + this.inputID + " to " + this.outputID;
+  }
+
+  /**
+   * Updates the link's weight
+   * @param newWeight
+   */
+  public void updateWeight(double newWeight) {
+    this.weight = newWeight;
+  }
+
+  /**
+   * Set the weight to a random value between [-1, 1]
+   */
+  public void newWeight() {
+    this.weight = Math.random() * 2 - 1;
   }
 
 }

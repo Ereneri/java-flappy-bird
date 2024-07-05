@@ -1,11 +1,6 @@
 package AI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class Population {
   // basic population variabkes
@@ -31,12 +26,8 @@ public class Population {
     this.numOutputs = c.getNumOutputs();
     this.individuals = new ArrayList<>();
     for (int i = 0; i < c.getPopulationSize(); i++) {
-      individuals.add(new Individual(newGenome(), 0.0));
+      individuals.add(new Individual(newGenome()));
     }
-  }
-
-  public int getHighestGID() {
-    return highestGID;
   }
 
   public List<Individual> getIndividuals() {
@@ -49,7 +40,11 @@ public class Population {
    */
   public List<Individual> reproduce() {
     // get old generation and sort by fitness
-    individuals.sort((a, b) -> Double.compare(b.getFitness(), a.getFitness()));
+    individuals.sort(Comparator.comparingDouble(Individual::getFitness));
+    for (Individual i : individuals) {
+//      System.out.printf("Individual #%d - Fitness:%f - Neurons:%d - Links:%d\n", i.getGenome().getGID(), i.getFitness(), i.getGenome().getNeurons().size(), i.getGenome().getLinks().size());
+      i.setFitness(0.0); // reset fitness
+    }
     int cutoff = (int)(Math.ceil(cfg.getSurvivalThreshold() * individuals.size()));
 
     // create new generation
@@ -60,15 +55,19 @@ public class Population {
     while (spawnSize-- >= 0) {
       Individual dominant = individuals.get((int)(Math.random() * cutoff));
       Individual recessive = individuals.get((int)(Math.random() * cutoff));
-      Individual offspring = new Individual(crossover(dominant, recessive), 0.0);
+      Individual offspring = new Individual(crossover(dominant, recessive));
       // using cfg mutate rate to determine if we should mutate
-      if (cfg.newValue() < cfg.getMutationRate()) {
-        mutation.mutate(dominant.getGenome());
+      if (offspring.getGenome().getLinks().isEmpty() || offspring.getGenome().getNeurons().isEmpty()) {
+        System.err.println("Invalid Offspring!");
+        offspring = new Individual(dominant.getGenome());
+      } else {
+        if (cfg.newValue() < cfg.getMutationRate()) {
+          mutation.mutate(offspring.getGenome());
+        }
       }
       newGeneration.add(offspring);
     }
     // set new individuals as well as return it to our gamePanel
-    System.out.println("New Population: " + newGeneration);
     this.individuals = newGeneration;
     return newGeneration;
   }
@@ -85,13 +84,13 @@ public class Population {
     }
     // create output neurons
     for (int i = 0; i < numOutputs; i++) {
-      g.addNeuron(new Neuron(g.getNextNID(), 0.0, OUTPUT, new Activation()));
+      g.addNeuron(new Neuron(g.getNextNID(), 0.0, OUTPUT, new Activation(0.0)));
     }
     // create links between input and output neurons
     for (Neuron in : g.getNeurons()) {
       for (Neuron out : g.getNeurons()) {
         if (in.getType() == INPUT && out.getType() == OUTPUT) {
-          g.addLinks(new Link(in.getNID(), out.getNID()));
+          g.addLink(new Link(in.getNID(), out.getNID()));
         }
       }
     }
@@ -145,19 +144,21 @@ public class Population {
       // if it's an output neuron, do not edit
       if (n.getType() == OUTPUT) {
         offspring.addNeuron(n);
+      } else {
+        int nid = n.getNID();
+        Neuron recessiveNeuron = recessive.getGenome().findNeuron(nid);
+        if (recessiveNeuron == null) offspring.addNeuron(n);
+        else offspring.addNeuron(crossoverNeurons(n, recessiveNeuron));
       }
-      int nid = n.getNID();
-      Neuron recessiveNeuron = recessive.getGenome().findNeuron(nid);
-      if (recessiveNeuron == null) offspring.addNeuron(n);
-      else offspring.addNeuron(crossoverNeurons(n, recessiveNeuron));
     }
     // the offspring inherits the links
     for (Link l : dominant.getGenome().getLinks()) {
       int[] ids = l.getLinkIDs();
       Link recessiveLink = recessive.getGenome().findLink(ids[0], ids[1]);
-      if (recessiveLink == null) offspring.addLinks(l);
-      else offspring.addLinks(crossoverLinks(recessiveLink, l));
+      if (recessiveLink == null) offspring.addLink(l);
+      else offspring.addLink(crossoverLinks(recessiveLink, l));
     }
     return offspring;
   }
+
 }

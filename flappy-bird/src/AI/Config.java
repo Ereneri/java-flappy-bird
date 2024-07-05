@@ -13,7 +13,7 @@ public class Config {
   private double initSD = 1.0;
   private double min = -20.0;
   private double max = 20.0;
-  private double mutationRate = 0.2;
+  private double mutationRate = 0.00001;
   private double mutatePower = 1.2;
   private double replaceRate = 0.05;
   private double survivalThreshold = 0.2;
@@ -46,15 +46,14 @@ public class Config {
    * @return new value based on gaussion dist.
    */
   public double newValue() {
-    // randomnly select a value from gaussion distribution based on mutation values
+    // randomly select a value from gaussion distribution based on mutation values
     return clamp(rnd.nextGaussian(initMean, initSD));
   }
 
   /**
-   * Mutate the value based on mutation rate and power
-   * @param value
-   * @return
+   * TBH DUNNO WHAT THIS DOES
    */
+  @Deprecated
   public double mutateDelta(double value) {
     double delta = clamp(rnd.nextGaussian(0.0, mutatePower));
     return clamp(value + delta);
