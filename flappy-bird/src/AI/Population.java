@@ -95,8 +95,6 @@ public class Population {
         }
       }
     }
-    System.out.println("DEBUG NEURONS" + g.getNeurons());
-    System.out.println("DEBUG LINKS" + g.getLinks());
     return g;
   }
 
@@ -112,7 +110,9 @@ public class Population {
     // randomly pick one of the bias and activations
     double bias = (Math.random() % 1) == 0 ? a.getBias() : b.getBias();
     Activation activation = (Math.random() % 1) == 0 ? a.getActivation() : b.getActivation();
-    return new Neuron(neuronID, bias, a.getType(), activation);
+    // if our dom neuron is an input keep it
+    int type = a.getType() == INPUT ? INPUT : HIDDEN;
+    return new Neuron(neuronID, bias, type, activation);
   }
 
   /**
@@ -136,12 +136,16 @@ public class Population {
    * @return Offspring of the two individuals
    */
   public Genome crossover(Individual dominant, Individual recessive) {
-    // create offspring of both indivudals
+    // create offspring of both individuals
     Genome offspring = new Genome(highestGID++, 
                                   dominant.getGenome().getNumInputs(), 
                                   dominant.getGenome().getNumOutputs());
     // the offspring inherits the neurons
     for (Neuron n : dominant.getGenome().getNeurons()) {
+      // if it's an output neuron, do not edit
+      if (n.getType() == OUTPUT) {
+        offspring.addNeuron(n);
+      }
       int nid = n.getNID();
       Neuron recessiveNeuron = recessive.getGenome().findNeuron(nid);
       if (recessiveNeuron == null) offspring.addNeuron(n);

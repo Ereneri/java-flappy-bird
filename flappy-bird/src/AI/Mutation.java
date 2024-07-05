@@ -101,7 +101,7 @@ public class Mutation {
     }
     // get a random neuron
     Neuron n = randomNeuron(g);
-    if (n == null || n.getType() == 3) {
+    if (n == null || n.getType() != Population.HIDDEN) {
       System.err.println("Cannot remove null or non-hidden Neurons");
       return;
     }
