@@ -16,12 +16,9 @@ Basic Flappy Bird Clone built in Java used as a base for NEAT algorithm implemen
 * Interface -> handles GUI menus and misc.
 
 # TODOS
-- [ ] Pausing and Pause Screen
-- [ ] Fix high-score positioning
-- [ ] Crossover Functions (NEAT)
-- [ ] Mutation Functions (NEAT)
-- [ ] Fitness Function (NEAT)
-- [ ] Population Functions (NEAT)
+- [ ] Improve Inputs given to agents
+- [ ] Create better EOG output
+- [ ] Resolve mutation issues with null/non-hidden neurons
 
 # AI Resources
 * [Efficient Evolution of Neural Network Topologies (whitepaper)](https://nn.cs.utexas.edu/downloads/papers/stanley.cec02.pdf)
