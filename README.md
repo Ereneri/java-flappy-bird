@@ -1,6 +1,10 @@
 # Flappy Bird in Java
 Basic Flappy Bird Clone built in Java used as a base for NEAT algorithm implementation (work in progress). Currently, the game portion is mostly finished, besides some quality-of-life things along with some refactoring. The AI algorithm used is a genetic algorithm, currently in the works.
 
+# Demo 
+_Disclaimer this is a very early demo and does not reflect any updates after July 5, 2024_
+[![Flappy Bird NEAT AI DEMO](https://img.youtube.com/vi/VG348GnaZeY/0.jpg)](https://www.youtube.com/watch?v=VG348GnaZeY)
+
 # Setup
 1. Compile Java files with `javac -d bin src/**/*.java`
 2. Run the App with `java -cp bin App.App`
